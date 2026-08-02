@@ -269,7 +269,7 @@ namespace Scanner {
 	template <typename T = uint8_t*>
 	void Add(const Pattern& pat, T* ptr) {
 		handlers.push_back({
-			pat, [=](uint8_t* addr) {
+			pat, [=](const uint8_t* addr) {
 				*ptr = reinterpret_cast<T>(addr);
 			}
 		});
