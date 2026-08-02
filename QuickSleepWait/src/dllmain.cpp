@@ -1,9 +1,17 @@
 #include <Mod/CppUserModBase.hpp>
-#include <utils/Scanner.h>
+#include <Syx/Syx.h>
+
 #define NOP_SIZE 12
-#define OLD_CODE_SIG "F3 0F 10 35 ? ? ? ? F3 0F 58 C6 F3 0F 11 05"
-#define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe";
-#define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe";
+// Pattern in WinGDK 1.512:
+// "F3 0F 10 35 F4 9B CA 01 F3 0F 58 C6 F3 0F 11 05"
+// Generic pattern w/wildcards for the specific DWORD addr in mem
+// "F3 0F 10 35 ?  ?  ?  ?  F3 0F 58 C6 F3 0F 11 05"
+#define OLD_CODE_PATTERN "\xF3\x0F\x10\x35\xF4\x9B\xCA\x01\xF3\x0F\x58\xC6\xF3\x0F\x11\x05"
+#define OLD_CODE_MASK "xxxx????xxxxxxxx"
+#define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe"
+#define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
+#define LOBR_WIN64 L##"OblivionRemastered-Win64-Shipping.exe"
+#define LOBR_WINGDK L##"OblivionRemastered-WinGDK-Shipping.exe"
 
 using namespace RC;
 
@@ -12,19 +20,64 @@ enum class State
     CONSTRUCTED,
     UNREAL_READY,
     CODE_HOOKED,
+    LOADING_FAILED,
     DESTROYED
 };
 
 static constexpr uint8_t newCode[] =
 {
-    0x0F,0x57,0xC0,0x90,    // xorps xmm0,xmm0
-    0x90,0x90,0x90,0x90,    // nop; nop; ...
-    0x90,0x90,0x90,0x90
+    0x0F,   // xorps xmm0,xmm0
+    0x57,
+    0xC0,
+    0x90,   // nop
+    0x90,   // nop
+    0x90,   // ...
+    0x90,
+    0x90,
+    0x90,
+    0x90,
+    0x90,
+    0x90
 };
 
 class QuickSleepWait final : public CppUserModBase
 {
     State state;
+
+    static BOOL replaceCode(void *addr)
+    {
+        Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Address: {}\n"), addr);
+        DWORD flOldProtect;
+        if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
+        {
+            return false;
+        }
+        memcpy(addr, newCode, NOP_SIZE);
+        if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    static uintptr_t findModule()
+    {
+        char pattern[] = OLD_CODE_PATTERN;
+        char mask[] = OLD_CODE_MASK;
+
+        if (GetModuleHandleA(OBR_WIN64))
+        {
+            return Syx::FindPatternA(LOBR_WIN64, pattern, mask);
+        }
+
+        if (GetModuleHandleA(OBR_WINGDK))
+        {
+            return Syx::FindPatternA(LOBR_WINGDK, pattern, mask);
+        }
+        Output::send<LogLevel::Error>(STR("[QuickSleepWait] Code address not found\n"));
+        return NULL;
+    }
 
     public:
         QuickSleepWait()
@@ -35,7 +88,6 @@ class QuickSleepWait final : public CppUserModBase
             ModVersion = STR("1.0");
             ModDescription = STR("Makes waiting faster and not suck.");
             ModAuthors = STR("Patrick Eads");
-            Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait constructed"));
         }
 
         ~QuickSleepWait() override
@@ -49,23 +101,7 @@ class QuickSleepWait final : public CppUserModBase
             {
                 return;
             }
-            Scanner::Add(OLD_CODE_SIG,
-                         [](const uint8_t *addr)->void
-                         {
-                             Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Address: {}\n"),
-                                                             (void*) addr);
-
-                             // Nop original code
-                             DWORD flOldProtect;
-                             VirtualProtect(LPVOID(addr),
-                                            NOP_SIZE,
-                                            PAGE_EXECUTE_READWRITE,
-                                            &flOldProtect);
-                             memcpy((void*) addr, newCode, NOP_SIZE);
-                             VirtualProtect(LPVOID(addr), NOP_SIZE, flOldProtect, &flOldProtect);
-                         });
-            Scanner::Scan();
-            state = State::CODE_HOOKED;
+            state = replaceCode((void*) findModule()) ? State::CODE_HOOKED : State::LOADING_FAILED;
         }
 
         auto on_unreal_init()->void override
