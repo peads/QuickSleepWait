@@ -109,7 +109,7 @@ class QuickSleepWait final : public CppUserModBase
             ModName = STR("QuickSleepWait");
             ModVersion = STR("1.0");
             ModDescription = STR("Makes waiting faster and not suck.");
-            ModAuthors = STR("Patrick Eads");
+            ModAuthors = STR("Patrick Eads - https://github.com/peads/QuickSleepWait");
         }
 
         ~QuickSleepWait() override
