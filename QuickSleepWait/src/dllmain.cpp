@@ -16,6 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <Mod/CppUserModBase.hpp>
+#include <UE4SSProgram.hpp>
 #include <Syx/Syx.h>
 
 //#define QSW_DEBUG 1
@@ -42,6 +43,7 @@ enum class State
     UNREAL_READY,
     SUCCESS,
     FAILED,
+    DESTROYING,
     DESTROYED
 };
 
@@ -119,26 +121,34 @@ class QuickSleepWait final : public CppUserModBase
 
         ~QuickSleepWait() override
         {
+#ifdef QSW_DEBUG
+            Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] destroyed\n"));
+#endif
             state = State::DESTROYED;
         }
 
         auto on_update()->void override
         {
-            if (State::UNREAL_READY != state)
+            switch (state) 
             {
-                return;
-            }
-            replaceCode((void*)findModule());
-#ifdef QSW_DEBUG
-            switch (state) {
+                case State::UNREAL_READY:
+                    replaceCode((void*)findModule());
+                    break;
                 case State::SUCCESS:
-                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait succeeded\n"));
+                case State::FAILED:
+                {
+                    state = State::DESTROYING;
+                    UE4SSProgram& program = UE4SSProgram::get_program();
+                    CppMod *foo = program.find_mod_by_name<CppMod>(ModName, UE4SSProgram::IsInstalled::Yes, UE4SSProgram::IsStarted::Yes);
+                    foo->uninstall();
+                }
                     break;
                 default:
-                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait failed\n"));
-                    break;
-            }
+#ifdef QSW_DEBUG
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] State: {}"), (uint32_t)state);
 #endif
+                    return;
+            }
         }
 
         auto on_unreal_init()->void override
