@@ -1,20 +1,21 @@
 diff --git a/Syx/Syx.h b/Syx/Syx.h
-index 4a30a96..f754e3c 100644
+index 4a30a96..729d06e 100644
 --- a/Syx/Syx.h
 +++ b/Syx/Syx.h
-@@ -1,9 +1,9 @@
+@@ -1,9 +1,10 @@
 +#pragma once
  #include <stdexcept>
  #include <vector>
  #include <string>
 -#include <sstream>
 -#include <Psapi.h>
++#include <Windows/MinWindows.hpp>
  #include <Windows.h>
 +#include <Psapi.h>
  
  /**
   * SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment.
-@@ -172,7 +172,7 @@ public:
+@@ -172,7 +173,7 @@ public:
  
              if (mbi.State == MEM_FREE)
              {
