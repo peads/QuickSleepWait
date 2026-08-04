@@ -65,11 +65,11 @@ class QuickSleepWait final : public CppUserModBase
 {
     State state;
 
-    static BOOL replaceCode(void *addr)
+    void replaceCode(void *addr)
     {
         if (!addr) 
         {
-            return false;
+            state = State::FAILED;
         }
 #ifdef QSW_DEBUG
         Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Address: {}\n"), addr);
@@ -77,10 +77,14 @@ class QuickSleepWait final : public CppUserModBase
         DWORD flOldProtect;
         if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
         {
-            return false;
+            state = State::FAILED;
         }
         memcpy(addr, newCode, NOP_SIZE);
-        return VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect);
+        if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
+        {
+            state = State::FAILED;
+        }
+        state = State::SUCCESS;
     }
 
     static uintptr_t findModule()
@@ -88,6 +92,7 @@ class QuickSleepWait final : public CppUserModBase
         char pattern[] = OLD_CODE_PATTERN;
         char mask[] = OLD_CODE_MASK;
 
+        // TODO figure out why FindPattern barfs when module not found
         if (GetModuleHandleA(OBR_WIN64))
         {
             return Syx::FindPatternA(LOBR_WIN64, pattern, mask);
@@ -123,9 +128,16 @@ class QuickSleepWait final : public CppUserModBase
             {
                 return;
             }
-            state = replaceCode((void*) findModule()) ? State::SUCCESS : State::FAILED;
+            replaceCode((void*)findModule());
 #ifdef QSW_DEBUG
-            Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait result: {}\n"), (int)state);
+            switch (state) {
+                case State::SUCCESS:
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait succeeded\n"));
+                    break;
+                default:
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait failed\n"));
+                    break;
+            }
 #endif
         }
 
