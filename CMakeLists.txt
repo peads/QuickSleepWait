@@ -10,7 +10,7 @@ execute_process(
 )
 
 if(NOT patch_result EQUAL 0)
-    message(FATAL_ERROR "Failed to apply patch file!")
+    message(WARNING "Failed to apply patch file!")
 endif()
 
 add_subdirectory(RE-UE4SS)
