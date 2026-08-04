@@ -139,8 +139,11 @@ class QuickSleepWait final : public CppUserModBase
                 {
                     state = State::DESTROYING;
                     UE4SSProgram& program = UE4SSProgram::get_program();
-                    CppMod *foo = program.find_mod_by_name<CppMod>(ModName, UE4SSProgram::IsInstalled::Yes, UE4SSProgram::IsStarted::Yes);
-                    foo->uninstall();
+                    CppMod *thisMod = program.find_mod_by_name<CppMod>(ModName, UE4SSProgram::IsInstalled::Yes, UE4SSProgram::IsStarted::Yes);
+                    if (thisMod)
+                    {
+                        thisMod->uninstall();
+                    }
                 }
                     break;
                 default:
