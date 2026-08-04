@@ -1,0 +1,25 @@
+diff --git a/Syx/Syx.h b/Syx/Syx.h
+index 4a30a96..f754e3c 100644
+--- a/Syx/Syx.h
++++ b/Syx/Syx.h
+@@ -1,9 +1,9 @@
++#pragma once
+ #include <stdexcept>
+ #include <vector>
+ #include <string>
+-#include <sstream>
+-#include <Psapi.h>
+ #include <Windows.h>
++#include <Psapi.h>
+ 
+ /**
+  * SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment.
+@@ -172,7 +172,7 @@ public:
+ 
+             if (mbi.State == MEM_FREE)
+             {
+-                if (presenthook64 = reinterpret_cast<HookContext*>(VirtualAlloc(mbi.BaseAddress, pageSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE)))
++                if ((presenthook64 = reinterpret_cast<HookContext*>(VirtualAlloc(mbi.BaseAddress, pageSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE))))
+                 {
+                     break;
+                 }
