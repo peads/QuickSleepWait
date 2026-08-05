@@ -67,7 +67,7 @@ class QuickSleepWait final : public CppUserModBase
 {
     State state;
 
-    void replaceCode(void *addr)
+    void replaceCode(LPVOID addr)
     {
         if (!addr) 
         {
@@ -132,13 +132,13 @@ class QuickSleepWait final : public CppUserModBase
             switch (state) 
             {
                 case State::UNREAL_READY:
-                    replaceCode((void*)findModule());
+                    replaceCode((LPVOID)findModule());
                     break;
                 case State::SUCCESS:
                 case State::FAILED:
                 {
                     state = State::DESTROYING;
-                    UE4SSProgram& program = UE4SSProgram::get_program();
+                    UE4SSProgram &program = UE4SSProgram::get_program();
                     CppMod *thisMod = program.find_mod_by_name<CppMod>(ModName, UE4SSProgram::IsInstalled::Yes, UE4SSProgram::IsStarted::Yes);
                     if (thisMod)
                     {
