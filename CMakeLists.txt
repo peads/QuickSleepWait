@@ -17,8 +17,6 @@ FetchContent_Declare(
 #        GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
         GIT_TAG 662df91503379fc383bc745f7ade795d7b2ca215
         GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
-#        GIT_SUBMODULES ""
-#        GIT_SUBMODULES_RECURSE FALSE
 )
 
 FetchContent_MakeAvailable(Syx-Memory)
@@ -35,27 +33,5 @@ execute_process(
         WORKING_DIRECTORY "${SYX_SRC_DIR}"
         RESULT_VARIABLE patch_result
 )
-#FetchContent_GetProperties(
-#        RE-UE4SS
-#        SOURCE_DIR UE4SS_SRC_DIR
-#        BINARY_DIR UE4SS_BIN_DIR
-#        POPULATED UE4SS_IS_POPULATED
-#)
-#file(LOCK "${UE4SS_SRC_DIR}/.gitmodules" TIMEOUT 5)
-#file(GLOB RES "${UE4SS_SRC_DIR}/deps/first/Unreal/*")
-#list(LENGTH RES DIR_SIZE)
-#if (${DIR_SIZE} LESS 1)
-#    execute_process(
-#            COMMAND ${GIT_EXECUTABLE} submodule set-url "deps/first/Unreal" "https://github.com/Re-UE4SS/UEPseudo.git"
-#            COMMAND ${GIT_EXECUTABLE} submodule update "--init" "--recursive"
-#            WORKING_DIRECTORY "${UE4SS_SRC_DIR}"
-#            RESULT_VARIABLE SUBMOD_RESULT
-#    )
-#    if (${DIR_SIZE} LESS 1 AND ${SUBMOD_RESULT})
-#        message(FATAL_ERROR "Error code: ${SUBMOD_RESULT} Unable to retrieve submodules of RE-UE4SS. Have you followed the steps in their README?")
-#    endif ()
-#endif ()
-#file(LOCK "${UE4SS_SRC_DIR}/.gitmodules" RELEASE)
 
-#add_subdirectory(${UE4SS_SRC_DIR})
 add_subdirectory(QuickSleepWait)
