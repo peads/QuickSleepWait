@@ -1,0 +1,70 @@
+diff --git a/Syx/Syx.h b/Syx/Syx.h
+index 4a30a96..f01b444 100644
+--- a/Syx/Syx.h
++++ b/Syx/Syx.h
+@@ -1,10 +1,19 @@
++#pragma once
+ #include <stdexcept>
+ #include <vector>
+ #include <string>
+-#include <sstream>
+-#include <Psapi.h>
++#ifndef UE_MINIMAL_WINDOWS_INCLUDE
++#include <Windows/MinWindows.hpp>
++#else
++#define WIN32_LEAN_AND_MEAN
++#endif
+ #include <Windows.h>
+-
++#include <Psapi.h>
++#ifdef UNICODE
++#define wchatptr_t LPCWSTR
++#else
++#define wchatptr_t LPCSTR
++#endif
+ /**
+  * SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment.
+  * It simplifies common memory-related tasks such as reading and writing memory, searching for patterns in memory,
+@@ -43,10 +52,10 @@ public:
+      * @param szModule The name of the module.
+      * @return MODULEINFO structure containing information about the module.
+      */
+-    static MODULEINFO GetModuleInfo(const wchar_t* szModule)
++    static MODULEINFO GetModuleInfo(wchatptr_t szModule)
+     {
+         MODULEINFO modinfo{ 0 };
+-        HMODULE hModule = GetModuleHandle(szModule);
++        const HMODULE hModule = GetModuleHandle(szModule);
+         if (hModule == 0)
+             return modinfo;
+         GetModuleInformation(GetCurrentProcess(), hModule, &modinfo, sizeof(MODULEINFO));
+@@ -82,15 +91,16 @@ public:
+      * @param mask The mask specifying which bytes in the pattern to consider.
+      * @return The address of the found pattern, or NULL if not found.
+      */
+-    static uintptr_t FindPatternA(const wchar_t* module, char* pattern, char* mask)
++    static uintptr_t FindPatternA(wchatptr_t module, char* pattern, char* mask)
+     {
+         MODULEINFO mInfo = GetModuleInfo(module);
+         uintptr_t base = (uintptr_t)mInfo.lpBaseOfDll;//10000000
+-        uintptr_t size = (uintptr_t)mInfo.SizeOfImage;//6000000
++        uintptr_t size = mInfo.SizeOfImage;//6000000
+ 
+-        uintptr_t patternLength = (uintptr_t)strlen(mask);
++        uintptr_t patternLength = strlen(mask);
++        size_t patternOffset = size > patternLength ? size - patternLength : 0;
+ 
+-        for (uintptr_t i = 0; i < size - patternLength; i++)
++        for (uintptr_t i = 0; i < patternOffset; i++)
+         {
+             bool found = true;
+             for (uintptr_t j = 0; j < patternLength; j++)
+@@ -172,7 +182,7 @@ public:
+ 
+             if (mbi.State == MEM_FREE)
+             {
+-                if (presenthook64 = reinterpret_cast<HookContext*>(VirtualAlloc(mbi.BaseAddress, pageSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE)))
++                if ((presenthook64 = reinterpret_cast<HookContext*>(VirtualAlloc(mbi.BaseAddress, pageSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE))))
+                 {
+                     break;
+                 }

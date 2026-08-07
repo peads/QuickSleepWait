@@ -15,29 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <Mod/CppUserModBase.hpp>
-#include <Syx/Syx.h>
-
-#define NOP_SIZE 12
-// Pattern in WinGDK 1.512:
-// "F3 0F 10 35 F4 9B CA 01 F3 0F 58 C6 F3 0F 11 05"
-// Generic pattern w/wildcards for the specific DWORD addr in mem
-// "F3 0F 10 35 ?  ?  ?  ?  F3 0F 58 C6 F3 0F 11 05"
-#define OLD_CODE_PATTERN "\xF3\x0F\x10\x35\xF4\x9B\xCA\x01\xF3\x0F\x58\xC6\xF3\x0F\x11\x05"
-#define OLD_CODE_MASK "xxxx????xxxxxxxx"
-#define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe"
-#define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
-#define LOBR_WIN64 L##"OblivionRemastered-Win64-Shipping.exe"
-#define LOBR_WINGDK L##"OblivionRemastered-WinGDK-Shipping.exe"
-
+#include "QuickSleepWait.h"
 using namespace RC;
 
 enum class State
 {
     CONSTRUCTED,
     UNREAL_READY,
-    CODE_HOOKED,
-    LOADING_FAILED,
+    WORKING,
+    SUCCESS,
+    FAILURE,
+    DESTROYING,
     DESTROYED
 };
 
@@ -61,39 +49,38 @@ class QuickSleepWait final : public CppUserModBase
 {
     State state;
 
-    static BOOL replaceCode(void *addr)
+    void replaceCode(LPVOID addr)
     {
+        if (!addr)
+        {
+            state = State::FAILURE;
+        }
+#ifdef QSW_DEBUG
         Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Address: {}\n"), addr);
+#endif
         DWORD flOldProtect;
         if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
         {
-            return false;
+            state = State::FAILURE;
         }
         memcpy(addr, newCode, NOP_SIZE);
         if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
         {
-            return false;
+            state = State::FAILURE;
         }
-
-        return true;
+        state = State::SUCCESS;
     }
 
     static uintptr_t findModule()
     {
         char pattern[] = OLD_CODE_PATTERN;
         char mask[] = OLD_CODE_MASK;
-
-        if (GetModuleHandleA(OBR_WIN64))
+        uintptr_t addr = NULL;
+        if (addr = Syx::FindPatternA(OBR_WIN64, pattern, mask); !addr)
         {
-            return Syx::FindPatternA(LOBR_WIN64, pattern, mask);
+            addr = Syx::FindPatternA(OBR_WINGDK, pattern, mask);
         }
-
-        if (GetModuleHandleA(OBR_WINGDK))
-        {
-            return Syx::FindPatternA(LOBR_WINGDK, pattern, mask);
-        }
-        Output::send<LogLevel::Error>(STR("[QuickSleepWait] Code address not found\n"));
-        return NULL;
+        return addr;
     }
 
     public:
@@ -104,26 +91,51 @@ class QuickSleepWait final : public CppUserModBase
             ModName = STR("QuickSleepWait");
             ModVersion = STR("1.0");
             ModDescription = STR("Makes waiting faster and not suck.");
-            ModAuthors = STR("Patrick Eads");
+            ModAuthors = STR("Patrick Eads - https://github.com/peads/QuickSleepWait");
         }
 
         ~QuickSleepWait() override
         {
+#ifdef QSW_DEBUG
+            Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] destroyed\n"));
+#endif
             state = State::DESTROYED;
         }
 
         auto on_update()->void override
         {
-            if (State::UNREAL_READY != state)
+            switch (state)
             {
-                return;
+                case State::UNREAL_READY:
+                    state = State::WORKING;
+                    replaceCode(reinterpret_cast<LPVOID>(findModule()));
+                    break;
+                case State::SUCCESS:
+                case State::FAILURE:
+                {
+                    state = State::DESTROYING;
+                    CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
+                             UE4SSProgram::IsInstalled::Yes,
+                             UE4SSProgram::IsStarted::Yes);
+                    if (thisMod)
+                    {
+                        thisMod->uninstall();
+                    }
+                }
+                break;
+                default:
+#ifdef QSW_DEBUG
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] State: {}"), (uint32_t)state);
+#endif
+                    return;
             }
-            state = replaceCode((void*) findModule()) ? State::CODE_HOOKED : State::LOADING_FAILED;
         }
 
         auto on_unreal_init()->void override
         {
-            Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait ready"));
+#ifdef QSW_DEBUG
+            Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] QuickSleepWait Unreal namespace ready\n"));
+#endif
             state = State::UNREAL_READY;
         }
 };
