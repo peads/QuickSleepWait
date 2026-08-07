@@ -22,8 +22,9 @@ enum class State
 {
     CONSTRUCTED,
     UNREAL_READY,
+    WORKING,
     SUCCESS,
-    FAILED,
+    FAILURE,
     DESTROYING,
     DESTROYED
 };
@@ -52,7 +53,7 @@ class QuickSleepWait final : public CppUserModBase
     {
         if (!addr)
         {
-            state = State::FAILED;
+            state = State::FAILURE;
         }
 #ifdef QSW_DEBUG
         Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Address: {}\n"), addr);
@@ -60,12 +61,12 @@ class QuickSleepWait final : public CppUserModBase
         DWORD flOldProtect;
         if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
         {
-            state = State::FAILED;
+            state = State::FAILURE;
         }
         memcpy(addr, newCode, NOP_SIZE);
         if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
         {
-            state = State::FAILED;
+            state = State::FAILURE;
         }
         state = State::SUCCESS;
     }
@@ -113,10 +114,11 @@ class QuickSleepWait final : public CppUserModBase
             switch (state)
             {
                 case State::UNREAL_READY:
+                    state = State::WORKING;
                     replaceCode(reinterpret_cast<LPVOID>(findModule()));
                     break;
                 case State::SUCCESS:
-                case State::FAILED:
+                case State::FAILURE:
                 {
                     state = State::DESTROYING;
                     CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
