@@ -32,10 +32,13 @@
 // Hence, it becomes 0F 75 C0 90 ... 90 with the NOPs to fill the remaining space.
 #define OLD_CODE_PATTERN "\xF3\x0F\x10\x35\xF4\x9B\xCA\x01\xF3\x0F\x58\xC6\xF3\x0F\x11\x05"
 #define OLD_CODE_MASK "xxxx????xxxxxxxx"
+#ifdef UNICODE
 #define OBR_WIN64 STR("OblivionRemastered-Win64-Shipping.exe")
 #define OBR_WINGDK STR("OblivionRemastered-WinGDK-Shipping.exe")
-// #define LOBR_WIN64 L##"OblivionRemastered-Win64-Shipping.exe"
-// #define LOBR_WINGDK L##"OblivionRemastered-WinGDK-Shipping.exe"
+#else
+#define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe"
+#define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
+#endif
 
 // using FMBNI_ExtraPredicate = std::function<bool(Mod*)>;
 

@@ -28,8 +28,9 @@ FetchContent_GetProperties(
         BINARY_DIR SYX_BIN_DIR
         POPULATED SYX_IS_POPULATED
 )
+
 execute_process(
-        COMMAND ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/QuickSleepWait/resources/syx.patch"
+        COMMAND ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/syx.patch"
         WORKING_DIRECTORY "${SYX_SRC_DIR}"
         RESULT_VARIABLE patch_result
 )
