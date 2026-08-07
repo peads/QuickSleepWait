@@ -1,5 +1,5 @@
 diff --git a/Syx/Syx.h b/Syx/Syx.h
-index 4a30a96..3601efe 100644
+index 4a30a96..f01b444 100644
 --- a/Syx/Syx.h
 +++ b/Syx/Syx.h
 @@ -1,10 +1,19 @@
@@ -38,7 +38,7 @@ index 4a30a96..3601efe 100644
          if (hModule == 0)
              return modinfo;
          GetModuleInformation(GetCurrentProcess(), hModule, &modinfo, sizeof(MODULEINFO));
-@@ -82,7 +91,7 @@ public:
+@@ -82,15 +91,16 @@ public:
       * @param mask The mask specifying which bytes in the pattern to consider.
       * @return The address of the found pattern, or NULL if not found.
       */
@@ -47,7 +47,19 @@ index 4a30a96..3601efe 100644
      {
          MODULEINFO mInfo = GetModuleInfo(module);
          uintptr_t base = (uintptr_t)mInfo.lpBaseOfDll;//10000000
-@@ -172,7 +181,7 @@ public:
+-        uintptr_t size = (uintptr_t)mInfo.SizeOfImage;//6000000
++        uintptr_t size = mInfo.SizeOfImage;//6000000
+ 
+-        uintptr_t patternLength = (uintptr_t)strlen(mask);
++        uintptr_t patternLength = strlen(mask);
++        size_t patternOffset = size > patternLength ? size - patternLength : 0;
+ 
+-        for (uintptr_t i = 0; i < size - patternLength; i++)
++        for (uintptr_t i = 0; i < patternOffset; i++)
+         {
+             bool found = true;
+             for (uintptr_t j = 0; j < patternLength; j++)
+@@ -172,7 +182,7 @@ public:
  
              if (mbi.State == MEM_FREE)
              {

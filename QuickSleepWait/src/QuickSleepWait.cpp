@@ -75,19 +75,12 @@ class QuickSleepWait final : public CppUserModBase
     {
         char pattern[] = OLD_CODE_PATTERN;
         char mask[] = OLD_CODE_MASK;
-
-        // TODO figure out why FindPattern barfs when module not found
-        if (GetModuleHandle(OBR_WIN64))
+        uintptr_t addr = NULL;
+        if (addr = Syx::FindPatternA(OBR_WIN64, pattern, mask); !addr)
         {
-            return Syx::FindPatternA(OBR_WIN64, pattern, mask);
+            addr = Syx::FindPatternA(OBR_WINGDK, pattern, mask);
         }
-
-        if (GetModuleHandle(OBR_WINGDK))
-        {
-            return Syx::FindPatternA(OBR_WINGDK, pattern, mask);
-        }
-        Output::send<LogLevel::Error>(STR("[QuickSleepWait] Code address not found\n"));
-        return NULL;
+        return addr;
     }
 
     public:
