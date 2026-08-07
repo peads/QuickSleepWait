@@ -1,0 +1,865 @@
+diff --git a/LICENSE b/LICENSE
+index dbbac35..47d6227 100644
+--- a/LICENSE
++++ b/LICENSE
+@@ -1,21 +1,21 @@
+-MIT License
+-
+-Copyright (c) 2023 SyxMem
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy
+-of this software and associated documentation files (the "Software"), to deal
+-in the Software without restriction, including without limitation the rights
+-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-copies of the Software, and to permit persons to whom the Software is
+-furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in all
+-copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+-SOFTWARE.
++MIT License
++
++Copyright (c) 2023 SyxMem
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+diff --git a/README.md b/README.md
+index a677e2b..7280e90 100644
+--- a/README.md
++++ b/README.md
+@@ -1,140 +1,140 @@
+-# SyxLib
+-
+-SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment. It simplifies common memory-related tasks such as reading and writing memory, searching for patterns in memory, and retrieving module base addresses.
+-### Version : 1.3
+-
+-## Features
+-
+-- Memory comparison using masks
+-- Pattern searching in memory regions
+-- Nested pointer dereferencing for writing values to memory
+-- Retrieving the base address of loaded modules
+-- Function detouring: Detour functions in both 32-bit and 64-bit environments.
+-
+-## Function Detouring
+-
+-The SyxLib library supports function detouring in both 32-bit and 64-bit environments. It provides two functions for detouring functions: `DetourFunc32` and `DetourFunc64`.
+-
+-### DetourFunc32
+-
+-DetourFunc32 is used to detour functions in a 32-bit environment.
+-
+-```cpp
+-const void* DetourFunc32(BYTE* const src, const BYTE* dest, const unsigned int length);
+-```
+-
+-### DetourFunc64
+-DetourFunc64 is used to detour functions in a 64-bit environment.
+-
+-```cpp
+-const void* DetourFunc64(BYTE* const src, const BYTE* dest, const unsigned int jumplength);
+-```
+-
+-- `src`: Pointer to the source function to be detoured.
+-- `dest`: Pointer to the destination function where the execution should be redirected.
+-- `length`: Length of the overwritten instructions.
+-- `Returns`: Pointer to the original code of the detoured function.
+-
+-
+-
+-## Documentation
+-
+-Comprehensive [documentation for SyxLib ](https://syxmem.mikuhyperpop.lol)It will provide detailed information on how to use the library and its available functions.
+-
+-## Usage
+-
+-1. Include the `Syx.h` header file in your project.
+-2. To use the memory utility functions, call them directly using the `Syx::` scope resolution operator. You don't need to create an instance of the `Syx` class.
+-
+-### Example: Searching for a Pattern
+-
+-#### Manual Length Pattern Scanning
+-```cpp
+-#include "Syx.h"
+-
+-int main()
+-{
+-    DWORD64 addressToSearch = 0x12345678;
+-    DWORD searchLength = 100;
+-    BYTE pattern[] = { 0x90, 0x90, 0x90 };
+-    char mask[] = "xxx";
+-
+-    DWORD64 foundAddress = Syx::FindPattern(addressToSearch, searchLength, pattern, mask);
+-    if (foundAddress)
+-    {
+-        printf("Pattern found at address: 0x%llX\n", foundAddress);
+-    }
+-    else
+-    {
+-        printf("Pattern not found.\n");
+-    }
+-
+-    return 0;
+-}
+-```
+-
+-#### Auto Length Pattern Scanning
+-```cpp
+-int main()
+-{
+-    uintptr_t Address[1024];
+-    const wchar_t* UserAssembly = L"UserAssembly.dll";
+-    char Address1M[] = "x????xxxx?xxx?xxxx?????xx";
+-    char NoFallDamage[] = "\xE8\x99\x99\x99\x99\x48\x85\xC0\x74\x99\x48\x8B\x4F\x99\x48\x85\xC9\x0F\x99\x99\x99\x99\x99\x8B\x51";
+-    Address[1] = Syx::FindPatternA(UserAssembly, NoFallDamage, Address1M);
+-
+-    return 0;
+-}
+-
+-
+-```
+-
+-
+-
+-### Example: Writing to a Memory Location with Nested Pointers
+-```cpp
+-#include "Syx.h"
+-
+-int main()
+-{
+-    uintptr_t baseAddress = Syx::GetModuleHandleEx("ModuleName.dll");
+-    std::vector<uintptr_t> offsets = { 0x10, 0x20, 0x30 };
+-    int valueToWrite = 42;
+-
+-    try
+-    {
+-        Syx::WritePTR(baseAddress, offsets, valueToWrite);
+-        printf("Value successfully written to memory.\n");
+-    }
+-    catch (const std::exception& e)
+-    {
+-        printf("Error: %s\n", e.what());
+-    }
+-
+-    return 0;
+-}
+-```
+-
+-### Example: DetourFunc32/64 function to detour a function:
+-```cpp
+-
+-// Address to hook
+-uintptr_t Address = 0x37C5D2FA;
+-
+-// Hook64 Location
+-#ifdef _WIN64
+-oProcessEvent = reinterpret_cast(Syx::DetourFunc64(reinterpret_cast(Address), reinterpret_cast(hProcessEvent64), 18));
+-#endif
+-
+-// Hook32 Location
+-#ifdef _WIN32
+-oProcessEvent = reinterpret_cast(Syx::DetourFunc32(reinterpret_cast(Address), reinterpret_cast(hProcessEvent32), 5));
+-#endif
+-
+-```
+-
+-## Contributions
+-Contributions to the SyxLib project are welcome! If you find any issues or have suggestions for improvements, feel free to open an issue or submit a pull request.
+-
+-## License
+-The SyxLib is open-source software released under the [MIT License](https://github.com/SyxMem/Syx-Memory/blob/main/LICENSE).
++# SyxLib
++
++SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment. It simplifies common memory-related tasks such as reading and writing memory, searching for patterns in memory, and retrieving module base addresses.
++### Version : 1.3
++
++## Features
++
++- Memory comparison using masks
++- Pattern searching in memory regions
++- Nested pointer dereferencing for writing values to memory
++- Retrieving the base address of loaded modules
++- Function detouring: Detour functions in both 32-bit and 64-bit environments.
++
++## Function Detouring
++
++The SyxLib library supports function detouring in both 32-bit and 64-bit environments. It provides two functions for detouring functions: `DetourFunc32` and `DetourFunc64`.
++
++### DetourFunc32
++
++DetourFunc32 is used to detour functions in a 32-bit environment.
++
++```cpp
++const void* DetourFunc32(BYTE* const src, const BYTE* dest, const unsigned int length);
++```
++
++### DetourFunc64
++DetourFunc64 is used to detour functions in a 64-bit environment.
++
++```cpp
++const void* DetourFunc64(BYTE* const src, const BYTE* dest, const unsigned int jumplength);
++```
++
++- `src`: Pointer to the source function to be detoured.
++- `dest`: Pointer to the destination function where the execution should be redirected.
++- `length`: Length of the overwritten instructions.
++- `Returns`: Pointer to the original code of the detoured function.
++
++
++
++## Documentation
++
++Comprehensive [documentation for SyxLib ](https://syxmem.mikuhyperpop.lol)It will provide detailed information on how to use the library and its available functions.
++
++## Usage
++
++1. Include the `Syx.h` header file in your project.
++2. To use the memory utility functions, call them directly using the `Syx::` scope resolution operator. You don't need to create an instance of the `Syx` class.
++
++### Example: Searching for a Pattern
++
++#### Manual Length Pattern Scanning
++```cpp
++#include "Syx.h"
++
++int main()
++{
++    DWORD64 addressToSearch = 0x12345678;
++    DWORD searchLength = 100;
++    BYTE pattern[] = { 0x90, 0x90, 0x90 };
++    char mask[] = "xxx";
++
++    DWORD64 foundAddress = Syx::FindPattern(addressToSearch, searchLength, pattern, mask);
++    if (foundAddress)
++    {
++        printf("Pattern found at address: 0x%llX\n", foundAddress);
++    }
++    else
++    {
++        printf("Pattern not found.\n");
++    }
++
++    return 0;
++}
++```
++
++#### Auto Length Pattern Scanning
++```cpp
++int main()
++{
++    uintptr_t Address[1024];
++    const wchar_t* UserAssembly = L"UserAssembly.dll";
++    char Address1M[] = "x????xxxx?xxx?xxxx?????xx";
++    char NoFallDamage[] = "\xE8\x99\x99\x99\x99\x48\x85\xC0\x74\x99\x48\x8B\x4F\x99\x48\x85\xC9\x0F\x99\x99\x99\x99\x99\x8B\x51";
++    Address[1] = Syx::FindPatternA(UserAssembly, NoFallDamage, Address1M);
++
++    return 0;
++}
++
++
++```
++
++
++
++### Example: Writing to a Memory Location with Nested Pointers
++```cpp
++#include "Syx.h"
++
++int main()
++{
++    uintptr_t baseAddress = Syx::GetModuleHandleEx("ModuleName.dll");
++    std::vector<uintptr_t> offsets = { 0x10, 0x20, 0x30 };
++    int valueToWrite = 42;
++
++    try
++    {
++        Syx::WritePTR(baseAddress, offsets, valueToWrite);
++        printf("Value successfully written to memory.\n");
++    }
++    catch (const std::exception& e)
++    {
++        printf("Error: %s\n", e.what());
++    }
++
++    return 0;
++}
++```
++
++### Example: DetourFunc32/64 function to detour a function:
++```cpp
++
++// Address to hook
++uintptr_t Address = 0x37C5D2FA;
++
++// Hook64 Location
++#ifdef _WIN64
++oProcessEvent = reinterpret_cast(Syx::DetourFunc64(reinterpret_cast(Address), reinterpret_cast(hProcessEvent64), 18));
++#endif
++
++// Hook32 Location
++#ifdef _WIN32
++oProcessEvent = reinterpret_cast(Syx::DetourFunc32(reinterpret_cast(Address), reinterpret_cast(hProcessEvent32), 5));
++#endif
++
++```
++
++## Contributions
++Contributions to the SyxLib project are welcome! If you find any issues or have suggestions for improvements, feel free to open an issue or submit a pull request.
++
++## License
++The SyxLib is open-source software released under the [MIT License](https://github.com/SyxMem/Syx-Memory/blob/main/LICENSE).
+diff --git a/Syx/Syx.h b/Syx/Syx.h
+index 4a30a96..c8a06fc 100644
+--- a/Syx/Syx.h
++++ b/Syx/Syx.h
+@@ -1,259 +1,269 @@
+-#include <stdexcept>
+-#include <vector>
+-#include <string>
+-#include <sstream>
+-#include <Psapi.h>
+-#include <Windows.h>
+-
+-/**
+- * SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment.
+- * It simplifies common memory-related tasks such as reading and writing memory, searching for patterns in memory,
+- * and retrieving module base addresses.
+- *
+- * Author: SyferX / RealSyferX
+- * Version : 1.3
+- */
+-
+-class Syx
+-{
+-public:
+-    /**
+-     * Compares data byte by byte using a mask.
+-     *
+-     * @param pData Pointer to the data to compare.
+-     * @param bMask Pointer to the comparison mask.
+-     * @param szMask Pointer to the mask string.
+-     * @return True if the data matches the mask, false otherwise.
+-     */
+-    static bool DataCompare(const BYTE* pData, const BYTE* bMask, const char* szMask)
+-    {
+-        for (; *szMask; ++szMask, ++pData, ++bMask)
+-        {
+-            if (*szMask == 'x' && *pData != *bMask)
+-            {
+-                return false;
+-            }
+-        }
+-        return (*szMask) == NULL;
+-    }
+-
+-    /**
+-     * Retrieves information about a module by its name.
+-     *
+-     * @param szModule The name of the module.
+-     * @return MODULEINFO structure containing information about the module.
+-     */
+-    static MODULEINFO GetModuleInfo(const wchar_t* szModule)
+-    {
+-        MODULEINFO modinfo{ 0 };
+-        HMODULE hModule = GetModuleHandle(szModule);
+-        if (hModule == 0)
+-            return modinfo;
+-        GetModuleInformation(GetCurrentProcess(), hModule, &modinfo, sizeof(MODULEINFO));
+-        return modinfo;
+-    }
+-
+-    /**
+-     * Searches for a pattern in a specified memory region.
+-     *
+-     * @param dwAddress Starting address of the memory region.
+-     * @param dwLen Length of the memory region to search.
+-     * @param bMask Pointer to the pattern mask.
+-     * @param szMask Pointer to the mask string.
+-     * @return The address where the pattern was found, or 0 if not found.
+-     */
+-    static uintptr_t FindPattern(uintptr_t dwAddress, uintptr_t dwLen, BYTE* bMask, char* szMask)
+-    {
+-        for (uintptr_t i = 0; i < dwLen; i++)
+-        {
+-            if (DataCompare((BYTE*)(dwAddress + i), bMask, szMask))
+-            {
+-                return (uintptr_t)(dwAddress + i);
+-            }
+-        }
+-        return 0;
+-    }
+-
+-    /**
+-     * Searches for a pattern in an auto memory region.
+-     *
+-     * @param module The name of the module to search in.
+-     * @param pattern The pattern to search for.
+-     * @param mask The mask specifying which bytes in the pattern to consider.
+-     * @return The address of the found pattern, or NULL if not found.
+-     */
+-    static uintptr_t FindPatternA(const wchar_t* module, char* pattern, char* mask)
+-    {
+-        MODULEINFO mInfo = GetModuleInfo(module);
+-        uintptr_t base = (uintptr_t)mInfo.lpBaseOfDll;//10000000
+-        uintptr_t size = (uintptr_t)mInfo.SizeOfImage;//6000000
+-
+-        uintptr_t patternLength = (uintptr_t)strlen(mask);
+-
+-        for (uintptr_t i = 0; i < size - patternLength; i++)
+-        {
+-            bool found = true;
+-            for (uintptr_t j = 0; j < patternLength; j++)
+-            {
+-                found &= mask[j] == '?' || pattern[j] == *(char*)(base + i + j);
+-            }
+-            if (found)
+-            {
+-                return base + i;
+-            }
+-        }
+-
+-        return NULL;
+-    }
+-
+-    /**
+-      * Writes a value to a memory location specified by a nested pointer.
+-      *
+-      * @param baseAddress The base address to start the nested pointer dereferencing.
+-      * @param offsets A vector of offsets that define the path to the desired memory location.
+-      * @param valueHere The value to be written to the memory location.
+-      * @throw std::runtime_error if an invalid pointer is encountered during the dereferencing process.
+-      */
+-    template <typename T>
+-    static void WritePTR(uintptr_t baseAddress, const std::vector<uintptr_t>& offsets, T valueHere)
+-    {
+-        uintptr_t* currentPtr = reinterpret_cast<uintptr_t*>(baseAddress);
+-
+-        try {
+-            for (size_t i = 0; i < offsets.size(); i++) {
+-                if (!currentPtr) {
+-                    throw std::runtime_error("Invalid pointer encountered at offset " + std::to_string(i) + ".");
+-                }
+-                currentPtr = reinterpret_cast<uintptr_t*>(*currentPtr + offsets[i]);
+-            }
+-
+-            if (!currentPtr) {
+-                throw std::runtime_error("Invalid pointer encountered.");
+-            }
+-
+-            *reinterpret_cast<T*>(currentPtr) = valueHere;
+-        }
+-        catch (const std::exception& e) {
+-            printf("%s", e.what());
+-            throw;
+-        }
+-    }
+-
+-    /**
+-     * Retrieves the base address of a module loaded in the current process.
+-     *
+-     * @param moduleName The name of the module.
+-     * @return The base address of the module if found, or nullptr if the module is not loaded.
+-     */
+-    static uintptr_t GetModuleHandleEx(const char* moduleName)
+-    {
+-        return reinterpret_cast<uintptr_t>(GetModuleHandleA(moduleName));
+-    }
+-
+-    /**
+-     * Detours a function by replacing its code with a jump to a detour function.
+-     *
+-     * @param src Pointer to the function to detour.
+-     * @param dest Pointer to the detour function.
+-     * @param jumplength Length of the jump instruction.
+-     * @return A pointer to the original code of the function.
+-     */
+-    static const void* DetourFunc64(BYTE* const src, const BYTE* dest, const unsigned int jumplength)
+-    {
+-        // Allocate a memory page that is going to contain executable code.
+-        MEMORY_BASIC_INFORMATION mbi;
+-        const SIZE_T pageSize = 0x1000;
+-        for (SIZE_T addr = reinterpret_cast<SIZE_T>(src); addr > reinterpret_cast<SIZE_T>(src) - 0x80000000; addr = reinterpret_cast<SIZE_T>(mbi.BaseAddress) - 1)
+-        {
+-            if (!VirtualQuery(reinterpret_cast<LPCVOID>(addr), &mbi, sizeof(mbi)))
+-            {
+-                break;
+-            }
+-
+-            if (mbi.State == MEM_FREE)
+-            {
+-                if (presenthook64 = reinterpret_cast<HookContext*>(VirtualAlloc(mbi.BaseAddress, pageSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE)))
+-                {
+-                    break;
+-                }
+-            }
+-        }
+-
+-        // If allocating a memory page failed, the function failed.
+-        if (!presenthook64)
+-        {
+-            return nullptr;
+-        }
+-
+-        // Save original code and apply detour. The detour code is:
+-        // push rax
+-        // movabs rax, 0xCCCCCCCCCCCCCCCC
+-        // xchg rax, [rsp]
+-        // ret
+-        BYTE detour[] = { 0x50, 0x48, 0xB8, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x48, 0x87, 0x04, 0x24, 0xC3 };
+-        const unsigned int length = jumplength;
+-        memcpy(presenthook64->original_code, src, length);
+-        memcpy(&presenthook64->original_code[length], detour, sizeof(detour));
+-        *(SIZE_T*)&presenthook64->original_code[length + 3] = (SIZE_T)src + length;
+-
+-        // Build a far jump to the destination function.
+-        *(WORD*)&presenthook64->far_jmp = 0x25FF;
+-        *(DWORD*)(presenthook64->far_jmp + 2) = (DWORD)((SIZE_T)presenthook64 - (SIZE_T)src + FIELD_OFFSET(HookContext, dst_ptr) - 6);
+-        presenthook64->dst_ptr = (SIZE_T)dest;
+-
+-        // Write the hook to the original function.
+-        DWORD flOld = 0;
+-        VirtualProtect(src, 6, PAGE_EXECUTE_READWRITE, &flOld);
+-        memcpy(src, presenthook64->far_jmp, sizeof(presenthook64->far_jmp));
+-        VirtualProtect(src, 6, flOld, &flOld);
+-
+-        // Return a pointer to the original code.
+-        return presenthook64->original_code;
+-    }
+-
+-    /**
+-     * Detours a function in a 32-bit environment.
+-     *
+-     * @param src Pointer to the source function to be detoured.
+-     * @param dest Pointer to the destination function where the execution should be redirected.
+-     * @param length Length of the overwritten instructions.
+-     * @return Pointer to the original code of the detoured function.
+-     */
+-    static const void* DetourFunc32(BYTE* const src, const BYTE* dest, const unsigned int length)
+-    {
+-        const auto detourLength = length < 5 ? 5 : length;
+-
+-        BYTE* jmp = new BYTE[detourLength];
+-        DWORD dwOldProtect, dwBkup, dwRelAddr;
+-        VirtualProtect(src, detourLength, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+-        dwRelAddr = (DWORD)(dest - src) - 5;
+-        *src = 0xE9;
+-        *(DWORD*)(src + 1) = dwRelAddr;
+-        for (unsigned int i = 5; i < detourLength; i++)
+-        {
+-            *(src + i) = 0x90;
+-        }
+-        VirtualProtect(src, detourLength, dwOldProtect, &dwBkup);
+-
+-        memcpy(jmp, src, detourLength);
+-        jmp += detourLength;
+-        *(jmp - 5) = 0xE9;
+-        *(DWORD*)(jmp - 4) = (DWORD)((src - jmp) - 5);
+-
+-        return (jmp - detourLength);
+-    }
+-
+-private:
+-    struct HookContext
+-    {
+-        BYTE original_code[64];
+-        SIZE_T dst_ptr;
+-        BYTE far_jmp[6];
+-    };
+-
+-    static HookContext* presenthook64;
+-};
+-
+-
+-//Don't touch, let it be here.
+-Syx::HookContext* Syx::presenthook64;
++#pragma once
++#include <stdexcept>
++#include <vector>
++#include <string>
++#ifndef UE_MINIMAL_WINDOWS_INCLUDE
++#include <Windows/MinWindows.hpp>
++#else
++#define WIN32_LEAN_AND_MEAN
++#endif
++#include <Windows.h>
++#include <Psapi.h>
++#ifdef UNICODE
++#define wchatptr_t LPCWSTR
++#else
++#define wchatptr_t LPCSTR
++#endif
++/**
++ * SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment.
++ * It simplifies common memory-related tasks such as reading and writing memory, searching for patterns in memory,
++ * and retrieving module base addresses.
++ *
++ * Author: SyferX / RealSyferX
++ * Version : 1.3
++ */
++
++class Syx
++{
++public:
++    /**
++     * Compares data byte by byte using a mask.
++     *
++     * @param pData Pointer to the data to compare.
++     * @param bMask Pointer to the comparison mask.
++     * @param szMask Pointer to the mask string.
++     * @return True if the data matches the mask, false otherwise.
++     */
++    static bool DataCompare(const BYTE* pData, const BYTE* bMask, const char* szMask)
++    {
++        for (; *szMask; ++szMask, ++pData, ++bMask)
++        {
++            if (*szMask == 'x' && *pData != *bMask)
++            {
++                return false;
++            }
++        }
++        return (*szMask) == NULL;
++    }
++
++    /**
++     * Retrieves information about a module by its name.
++     *
++     * @param szModule The name of the module.
++     * @return MODULEINFO structure containing information about the module.
++     */
++    static MODULEINFO GetModuleInfo(wchatptr_t szModule)
++    {
++        MODULEINFO modinfo{ 0 };
++        const HMODULE hModule = GetModuleHandle(szModule);
++        if (hModule == 0)
++            return modinfo;
++        GetModuleInformation(GetCurrentProcess(), hModule, &modinfo, sizeof(MODULEINFO));
++        return modinfo;
++    }
++
++    /**
++     * Searches for a pattern in a specified memory region.
++     *
++     * @param dwAddress Starting address of the memory region.
++     * @param dwLen Length of the memory region to search.
++     * @param bMask Pointer to the pattern mask.
++     * @param szMask Pointer to the mask string.
++     * @return The address where the pattern was found, or 0 if not found.
++     */
++    static uintptr_t FindPattern(uintptr_t dwAddress, uintptr_t dwLen, BYTE* bMask, char* szMask)
++    {
++        for (uintptr_t i = 0; i < dwLen; i++)
++        {
++            if (DataCompare((BYTE*)(dwAddress + i), bMask, szMask))
++            {
++                return (uintptr_t)(dwAddress + i);
++            }
++        }
++        return 0;
++    }
++
++    /**
++     * Searches for a pattern in an auto memory region.
++     *
++     * @param module The name of the module to search in.
++     * @param pattern The pattern to search for.
++     * @param mask The mask specifying which bytes in the pattern to consider.
++     * @return The address of the found pattern, or NULL if not found.
++     */
++    static uintptr_t FindPatternA(wchatptr_t module, char* pattern, char* mask)
++    {
++        MODULEINFO mInfo = GetModuleInfo(module);
++        uintptr_t base = (uintptr_t)mInfo.lpBaseOfDll;//10000000
++        uintptr_t size = mInfo.SizeOfImage;//6000000
++
++        uintptr_t patternLength = strlen(mask);
++        size_t patternOffset = size > patternLength ? size - patternLength : 0;
++
++        for (uintptr_t i = 0; i < patternOffset; i++)
++        {
++            bool found = true;
++            for (uintptr_t j = 0; j < patternLength; j++)
++            {
++                found &= mask[j] == '?' || pattern[j] == *(char*)(base + i + j);
++            }
++            if (found)
++            {
++                return base + i;
++            }
++        }
++
++        return NULL;
++    }
++
++    /**
++      * Writes a value to a memory location specified by a nested pointer.
++      *
++      * @param baseAddress The base address to start the nested pointer dereferencing.
++      * @param offsets A vector of offsets that define the path to the desired memory location.
++      * @param valueHere The value to be written to the memory location.
++      * @throw std::runtime_error if an invalid pointer is encountered during the dereferencing process.
++      */
++    template <typename T>
++    static void WritePTR(uintptr_t baseAddress, const std::vector<uintptr_t>& offsets, T valueHere)
++    {
++        uintptr_t* currentPtr = reinterpret_cast<uintptr_t*>(baseAddress);
++
++        try {
++            for (size_t i = 0; i < offsets.size(); i++) {
++                if (!currentPtr) {
++                    throw std::runtime_error("Invalid pointer encountered at offset " + std::to_string(i) + ".");
++                }
++                currentPtr = reinterpret_cast<uintptr_t*>(*currentPtr + offsets[i]);
++            }
++
++            if (!currentPtr) {
++                throw std::runtime_error("Invalid pointer encountered.");
++            }
++
++            *reinterpret_cast<T*>(currentPtr) = valueHere;
++        }
++        catch (const std::exception& e) {
++            printf("%s", e.what());
++            throw;
++        }
++    }
++
++    /**
++     * Retrieves the base address of a module loaded in the current process.
++     *
++     * @param moduleName The name of the module.
++     * @return The base address of the module if found, or nullptr if the module is not loaded.
++     */
++    static uintptr_t GetModuleHandleEx(const char* moduleName)
++    {
++        return reinterpret_cast<uintptr_t>(GetModuleHandleA(moduleName));
++    }
++
++    /**
++     * Detours a function by replacing its code with a jump to a detour function.
++     *
++     * @param src Pointer to the function to detour.
++     * @param dest Pointer to the detour function.
++     * @param jumplength Length of the jump instruction.
++     * @return A pointer to the original code of the function.
++     */
++    static const void* DetourFunc64(BYTE* const src, const BYTE* dest, const unsigned int jumplength)
++    {
++        // Allocate a memory page that is going to contain executable code.
++        MEMORY_BASIC_INFORMATION mbi;
++        const SIZE_T pageSize = 0x1000;
++        for (SIZE_T addr = reinterpret_cast<SIZE_T>(src); addr > reinterpret_cast<SIZE_T>(src) - 0x80000000; addr = reinterpret_cast<SIZE_T>(mbi.BaseAddress) - 1)
++        {
++            if (!VirtualQuery(reinterpret_cast<LPCVOID>(addr), &mbi, sizeof(mbi)))
++            {
++                break;
++            }
++
++            if (mbi.State == MEM_FREE)
++            {
++                if ((presenthook64 = reinterpret_cast<HookContext*>(VirtualAlloc(mbi.BaseAddress, pageSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE))))
++                {
++                    break;
++                }
++            }
++        }
++
++        // If allocating a memory page failed, the function failed.
++        if (!presenthook64)
++        {
++            return nullptr;
++        }
++
++        // Save original code and apply detour. The detour code is:
++        // push rax
++        // movabs rax, 0xCCCCCCCCCCCCCCCC
++        // xchg rax, [rsp]
++        // ret
++        BYTE detour[] = { 0x50, 0x48, 0xB8, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x48, 0x87, 0x04, 0x24, 0xC3 };
++        const unsigned int length = jumplength;
++        memcpy(presenthook64->original_code, src, length);
++        memcpy(&presenthook64->original_code[length], detour, sizeof(detour));
++        *(SIZE_T*)&presenthook64->original_code[length + 3] = (SIZE_T)src + length;
++
++        // Build a far jump to the destination function.
++        *(WORD*)&presenthook64->far_jmp = 0x25FF;
++        *(DWORD*)(presenthook64->far_jmp + 2) = (DWORD)((SIZE_T)presenthook64 - (SIZE_T)src + FIELD_OFFSET(HookContext, dst_ptr) - 6);
++        presenthook64->dst_ptr = (SIZE_T)dest;
++
++        // Write the hook to the original function.
++        DWORD flOld = 0;
++        VirtualProtect(src, 6, PAGE_EXECUTE_READWRITE, &flOld);
++        memcpy(src, presenthook64->far_jmp, sizeof(presenthook64->far_jmp));
++        VirtualProtect(src, 6, flOld, &flOld);
++
++        // Return a pointer to the original code.
++        return presenthook64->original_code;
++    }
++
++    /**
++     * Detours a function in a 32-bit environment.
++     *
++     * @param src Pointer to the source function to be detoured.
++     * @param dest Pointer to the destination function where the execution should be redirected.
++     * @param length Length of the overwritten instructions.
++     * @return Pointer to the original code of the detoured function.
++     */
++    static const void* DetourFunc32(BYTE* const src, const BYTE* dest, const unsigned int length)
++    {
++        const auto detourLength = length < 5 ? 5 : length;
++
++        BYTE* jmp = new BYTE[detourLength];
++        DWORD dwOldProtect, dwBkup, dwRelAddr;
++        VirtualProtect(src, detourLength, PAGE_EXECUTE_READWRITE, &dwOldProtect);
++        dwRelAddr = (DWORD)(dest - src) - 5;
++        *src = 0xE9;
++        *(DWORD*)(src + 1) = dwRelAddr;
++        for (unsigned int i = 5; i < detourLength; i++)
++        {
++            *(src + i) = 0x90;
++        }
++        VirtualProtect(src, detourLength, dwOldProtect, &dwBkup);
++
++        memcpy(jmp, src, detourLength);
++        jmp += detourLength;
++        *(jmp - 5) = 0xE9;
++        *(DWORD*)(jmp - 4) = (DWORD)((src - jmp) - 5);
++
++        return (jmp - detourLength);
++    }
++
++private:
++    struct HookContext
++    {
++        BYTE original_code[64];
++        SIZE_T dst_ptr;
++        BYTE far_jmp[6];
++    };
++
++    static HookContext* presenthook64;
++};
++
++
++//Don't touch, let it be here.
++Syx::HookContext* Syx::presenthook64;
