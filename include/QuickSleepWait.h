@@ -18,7 +18,9 @@
 #ifndef QSW_H
 #define QSW_H
 #include <Mod/CppUserModBase.hpp>
+#ifndef IS_QSW_RELEASE
 #include <UE4SSProgram.hpp>
+#endif
 #include <Syx/Syx.h>
 
 //#define QSW_DEBUG 1
