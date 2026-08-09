@@ -1,5 +1,5 @@
 /*
-* This file is part of the QuickSleepWait distribution
+ * This file is part of the QuickSleepWait distribution
  * (https://github.com/peads/QuickSleepWait).
  * Copyright (c) 2026 Patrick Eads.
  *

@@ -102,7 +102,7 @@ execute_process(
 set(ENV{PATH} "${OLD_PATH}")
 
 add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
-add_library(RE-UE4SS-LIB SHARED IMPORTED)
+add_library(RE-UE4SS-LIB STATIC IMPORTED)
 
 target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include/Unreal/Core)
@@ -132,7 +132,7 @@ target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
-        IMPORTED_IMPLIB "${RUL_SRC_DIR}/UE4SS.lib"
+        IMPORTED_LOCATION "${RUL_SRC_DIR}/UE4SS.lib"
 #        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
 )
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
