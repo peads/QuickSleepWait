@@ -113,7 +113,9 @@ class QuickSleepWait final : public CppUserModBase
                 case State::SUCCESS:
                 case State::FAILURE:
                 {
-#ifndef IS_QSW_RELEASE
+#ifdef IS_QSW_RELEASE
+                    state = State::DESTROYED;
+#else
                     state = State::DESTROYING;
                     CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
                              UE4SSProgram::IsInstalled::Yes,
@@ -122,8 +124,6 @@ class QuickSleepWait final : public CppUserModBase
                     {
                         thisMod->uninstall();
                     }
-#else
-                    state = State::DESTROYED;
 #endif
                 }
                 break;

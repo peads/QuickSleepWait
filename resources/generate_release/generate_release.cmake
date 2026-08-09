@@ -34,15 +34,15 @@ add_compile_definitions(UBT_COMPILED_PLATFORM=Windows)
 add_compile_definitions(PLATFORM_WINDOWS=1)
 
 FetchContent_Populate(RE-UE4SS)
-FetchContent_MakeAvailable(ImGui)
-FetchContent_MakeAvailable(ImGuiTextEdit)
+FetchContent_Populate(ImGui)
+FetchContent_Populate(ImGuiTextEdit)
 # TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
 #FetchContent_MakeAvailable(fmtlib)
-FetchContent_MakeAvailable(RE-UE4SS-LIB)
+FetchContent_Populate(RE-UE4SS-LIB)
 
 set(TMP_MSVC ${MSVC})
 unset(MSVC)
-FetchContent_MakeAvailable(PolyHook_2)
+FetchContent_Populate(PolyHook_2)
 # re-enable 'install' and reset 'MSVC' since we're done adding PolyHook
 set(MSVC ${TMP_MSVC})
 unset(TMP_MSVC)
@@ -137,5 +137,3 @@ set_target_properties(RE-UE4SS-LIB PROPERTIES
 )
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
-
-message(STATUS "Linked libraries for ${TARGET}: ${my_libs}")
