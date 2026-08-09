@@ -6,13 +6,11 @@ FetchContent_Declare(ImGui
         GIT_REPOSITORY git@github.com:ocornut/imgui.git
         GIT_TAG c6e0284ac58b3f205c95365478888f7b53b077e2 #v1.89.9
         GIT_SHALLOW TRUE
-        CONFIGURE_COMMAND ""
 )
 FetchContent_Declare(ImGuiTextEdit
         GIT_REPOSITORY git@github.com:UE4SS-RE/ImGuiColorTextEdit.git
         GIT_TAG master
         GIT_SHALLOW TRUE
-        CONFIGURE_COMMAND ""
 )
 FetchContent_Declare(PolyHook_2
         GIT_REPOSITORY git@github.com:stevemk14ebr/PolyHook_2_0.git
@@ -103,7 +101,7 @@ execute_process(
 )
 set(ENV{PATH} "${OLD_PATH}")
 
-add_library(${TARGET} SHARED src/QuickSleepWait.cpp)
+add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
 add_library(RE-UE4SS-LIB SHARED IMPORTED)
 
 target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
@@ -129,6 +127,7 @@ target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
 #target_include_directories(${TARGET} PUBLIC ${FMT_SRC_DIR}/include)
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
@@ -136,8 +135,7 @@ set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_IMPLIB "${RUL_SRC_DIR}/UE4SS.lib"
 #        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
 )
-target_link_libraries(${TARGET} PRIVATE PolyHook_2)
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
-target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE=1)
+target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
 
 message(STATUS "Linked libraries for ${TARGET}: ${my_libs}")
