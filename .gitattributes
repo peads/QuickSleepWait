@@ -5,6 +5,8 @@
 *.py text
 *.pyx text
 
+syx.patch -text
+
 *.png binary
 *.jpg binary
 *.wav binary
