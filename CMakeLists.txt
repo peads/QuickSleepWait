@@ -20,7 +20,7 @@ FetchContent_Declare(
 #        GIT_TAG 662df91503379fc383bc745f7ade795d7b2ca215
         GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
 )
-FetchContent_MakeAvailable(Syx-Memory)
+FetchContent_Populate(Syx-Memory)
 FetchContent_GetProperties(
         Syx-Memory
         SOURCE_DIR SYX_SRC_DIR
@@ -28,7 +28,7 @@ FetchContent_GetProperties(
         POPULATED SYX_IS_POPULATED
 )
 execute_process(
-        COMMAND ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/syx.patch"
+        COMMAND ${GIT_EXECUTABLE} apply "${CMAKE_SOURCE_DIR}/resources/syx.patch"
         WORKING_DIRECTORY "${SYX_SRC_DIR}"
         RESULT_VARIABLE patch_result
 )
@@ -37,7 +37,7 @@ if(DEFINED GENERATE_RELEASE)
     include(resources/generate_release/generate_release.cmake)
 else()
     FetchContent_MakeAvailable(RE-UE4SS)
-    add_library(${TARGET} SHARED "src/QuickSleepWait.cpp")
+    add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
     target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
     target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(${TARGET} PUBLIC UE4SS)
