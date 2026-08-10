@@ -44,7 +44,7 @@ FetchContent_Populate(RE-UE4SS)
 FetchContent_Populate(ImGui)
 FetchContent_Populate(ImGuiTextEdit)
 # TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
-#FetchContent_MakeAvailable(fmtlib)
+#FetchContent_Populate(fmtlib)
 FetchContent_Populate(RE-UE4SS-LIB)
 
 set(TMP_MSVC ${MSVC})
@@ -115,6 +115,7 @@ set(ENV{PATH} "${OLD_PATH}")
 add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
 add_library(RE-UE4SS-LIB STATIC IMPORTED)
 
+target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include/Unreal/Core)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include)
@@ -137,7 +138,6 @@ target_include_directories(${TARGET} PRIVATE ${IGTE_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
-target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
 #target_include_directories(${TARGET} PUBLIC ${FMT_SRC_DIR}/include)
 
