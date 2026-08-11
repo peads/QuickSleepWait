@@ -99,7 +99,7 @@ add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
 add_library(RE-UE4SS-LIB STATIC IMPORTED)
 
 target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
+#target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include/Unreal/Core)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/generated_include)
@@ -122,6 +122,7 @@ target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
+target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
@@ -129,7 +130,17 @@ set_target_properties(RE-UE4SS-LIB PROPERTIES
         MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
 )
 target_compile_definitions(RE-UE4SS-LIB INTERFACE
-        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:UE_BUILD_SHIPPING=1>"
+        "$<$<CONFIG:Release>:UE_BUILD_SHIPPING=1>"
+        "$<$<CONFIG:Release>:UE_GAME=1>"
+        "$<$<CONFIG:Release>:UE_EDITOR=0>"
+        "$<$<CONFIG:Release>:UE_SERVER=0>"
+        "$<$<CONFIG:Release>:UE_BUILD_SHIPPING_WITH_EDITOR=0>"
+        "$<$<CONFIG:Release>:UE_BUILD_DOCS=0>"
+        "$<$<CONFIG:Release>:USE_LOGGING_IN_SHIPPING=0>"
+        "$<$<CONFIG:Release>:USE_CHECKS_IN_SHIPPING=0>"
+        "$<$<CONFIG:Release>:USE_ENSURES_IN_SHIPPING=0>"
+        "$<$<CONFIG:Release>:FORCE_USE_STATS=0>"
+        "$<$<CONFIG:Release>:USE_NULL_RHI=1>"
         "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:UBT_COMPILED_PLATFORM=Windows>"
         "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:PLATFORM_WINDOWS=1>"
 )

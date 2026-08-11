@@ -41,7 +41,4 @@
 #define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe"
 #define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
 #endif
-
-// using FMBNI_ExtraPredicate = std::function<bool(Mod*)>;
-
 #endif //QSW_H
