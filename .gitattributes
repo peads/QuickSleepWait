@@ -5,6 +5,8 @@
 *.py text
 *.pyx text
 
+*.patch -text
+
 *.png binary
 *.jpg binary
 *.wav binary

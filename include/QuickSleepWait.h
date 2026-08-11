@@ -1,5 +1,5 @@
 /*
-* This file is part of the QuickSleepWait distribution
+ * This file is part of the QuickSleepWait distribution
  * (https://github.com/peads/QuickSleepWait).
  * Copyright (c) 2026 Patrick Eads.
  *
@@ -18,7 +18,9 @@
 #ifndef QSW_H
 #define QSW_H
 #include <Mod/CppUserModBase.hpp>
+#ifndef IS_QSW_RELEASE
 #include <UE4SSProgram.hpp>
+#endif
 #include <Syx/Syx.h>
 
 //#define QSW_DEBUG 1
@@ -39,7 +41,4 @@
 #define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe"
 #define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
 #endif
-
-// using FMBNI_ExtraPredicate = std::function<bool(Mod*)>;
-
 #endif //QSW_H
