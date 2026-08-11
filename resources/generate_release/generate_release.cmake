@@ -1,7 +1,3 @@
-#if(MSVC)
-#    add_compile_options("/Zc:__cplusplus")
-#endif()
-
 FetchContent_Declare(ImGui
         GIT_REPOSITORY git@github.com:ocornut/imgui.git
         GIT_TAG c6e0284ac58b3f205c95365478888f7b53b077e2 #v1.89.9
@@ -18,16 +14,16 @@ FetchContent_Declare(PolyHook_2
 )
 FetchContent_Declare(
         RE-UE4SS-LIB
-        URL https://github.com/UE4SS-RE/RE-UE4SS/releases/download/v3.0.1/zDEV-UE4SS_v3.0.1.zip
-        URL_HASH MD5=cf6e1a7c0cacec9d3455b324f4465cf1
+        URL https://github.com/UE4SS-RE/RE-UE4SS/releases/download/experimental-latest/zDEV-UE4SS_v3.0.1-1021-g1c1a1497.zip
+        URL_HASH SHA256=497f7106e19c866f38511699ffaecc17ae2a032682066d5ed8029ac61532d517
 )
-# TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
-#FetchContent_Declare(
-#        fmtlib
-#        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-#        GIT_TAG 40626af88bd7df9a5fb80be7b25ac85b122d6c21 # 11.2.0
-#        GIT_SHALLOW TRUE
-#)
+FetchContent_Declare(
+        fmtlib
+        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+        GIT_TAG 40626af88bd7df9a5fb80be7b25ac85b122d6c21 # 11.2.0
+        GIT_SHALLOW TRUE
+)
+# TODO: replace with generator?
 add_compile_definitions(CMAKE_BUILD_TYPE=Game__Shipping__Win64)
 add_compile_definitions(UE_BUILD_SHIPPING=1)
 add_compile_definitions(UBT_COMPILED_PLATFORM=Windows)
@@ -35,16 +31,14 @@ add_compile_definitions(PLATFORM_WINDOWS=1)
 FetchContent_Declare(
         RE-UE4SS
         GIT_REPOSITORY https://github.com/UE4SS-RE/RE-UE4SS.git
-        GIT_TAG d935b5b23bac03b65c14ae38382b02007204cc2e # v3.0.1
-        #GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
+        GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
         GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
-        PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/corrosion.patch" || ${CMAKE_COMMAND} -E true
+        PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/DynamicOutput.patch" || ${CMAKE_COMMAND} -E true
 )
 FetchContent_Populate(RE-UE4SS)
 FetchContent_Populate(ImGui)
 FetchContent_Populate(ImGuiTextEdit)
-# TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
-#FetchContent_Populate(fmtlib)
+FetchContent_Populate(fmtlib)
 FetchContent_Populate(RE-UE4SS-LIB)
 
 set(TMP_MSVC ${MSVC})
@@ -84,18 +78,12 @@ FetchContent_GetProperties(
         BINARY_DIR RUL_BIN_DIR
         POPULATED RUL_IS_POPULATED
 )
-# TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
-#FetchContent_GetProperties(
-#        fmtlib
-#        SOURCE_DIR FMT_SRC_DIR
-#        BINARY_DIR FMT_BIN_DIR
-#        POPULATED FMT_IS_POPULATED
-#)
-#execute_process(
-#            COMMAND ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/patternsleuth.patch"
-#            WORKING_DIRECTORY "${UE4SS_SRC_DIR}/deps/first/patternsleuth"
-#            RESULT_VARIABLE patch_result
-#)
+FetchContent_GetProperties(
+        fmtlib
+        SOURCE_DIR FMT_SRC_DIR
+        BINARY_DIR FMT_BIN_DIR
+        POPULATED FMT_IS_POPULATED
+)
 find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
 message(STATUS "${BASH_EXECUTABLE}")
 cmake_path(GET BASH_EXECUTABLE PARENT_PATH GIT_BASH_USR_BIN)
@@ -138,12 +126,11 @@ target_include_directories(${TARGET} PRIVATE ${IGTE_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
-# TODO: re-enable when we find compiled version that supports UE4SSProgram::find_mod_by_name
-#target_include_directories(${TARGET} PUBLIC ${FMT_SRC_DIR}/include)
+target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
-        IMPORTED_LOCATION "${RUL_SRC_DIR}/UE4SS.lib"
+        IMPORTED_LOCATION "${RUL_SRC_DIR}/ue4ss/UE4SS.lib"
 #        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
 )
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)

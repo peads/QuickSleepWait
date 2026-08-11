@@ -5,9 +5,7 @@
 *.py text
 *.pyx text
 
-syx.patch -text
-patternsleuth.patch -text
-corrosion.patch -text
+*.patch -text
 
 *.png binary
 *.jpg binary
