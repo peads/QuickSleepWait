@@ -79,21 +79,24 @@ FetchContent_GetProperties(
         BINARY_DIR FMT_BIN_DIR
         POPULATED FMT_IS_POPULATED
 )
-find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
-message(STATUS "${BASH_EXECUTABLE}")
-cmake_path(GET BASH_EXECUTABLE PARENT_PATH GIT_BASH_USR_BIN)
 
-#TODO: When cmake 4.4 becomes more common move this ugly garbage to the ENVIRONMENT option
-set(OLD_PATH "$ENV{PATH}")
-set(ENV{PATH} "${GIT_BASH_USR_BIN};$ENV{PATH}")
-execute_process(
-        COMMAND "${BASH_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/resources/generate_release/generate_libs.sh"
-        WORKING_DIRECTORY ${RUL_SRC_DIR}
-        COMMAND_ECHO STDOUT
-        #TODO e.g.,
-        #ENVIRONMENT PATH="${GIT_BASH_USR_BIN};$ENV{PATH}"
-)
-set(ENV{PATH} "${OLD_PATH}")
+if(NOT EXISTS "${RUL_SRC_DIR}/ue4ss/UE4SS.lib")
+    find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
+    message(STATUS "${BASH_EXECUTABLE}")
+    cmake_path(GET BASH_EXECUTABLE PARENT_PATH GIT_BASH_USR_BIN)
+
+    #TODO: When cmake 4.4 becomes more common move this ugly garbage to the ENVIRONMENT option
+    set(OLD_PATH "$ENV{PATH}")
+    set(ENV{PATH} "${GIT_BASH_USR_BIN};$ENV{PATH}")
+    execute_process(
+            COMMAND "${BASH_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/resources/generate_release/generate_libs.sh"
+            WORKING_DIRECTORY ${RUL_SRC_DIR}
+            COMMAND_ECHO STDOUT
+            #TODO e.g.,
+            #ENVIRONMENT PATH="${GIT_BASH_USR_BIN};$ENV{PATH}"
+    )
+    set(ENV{PATH} "${OLD_PATH}")
+endif()
 
 add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
 add_library(RE-UE4SS-LIB STATIC IMPORTED)
@@ -146,3 +149,13 @@ target_compile_definitions(RE-UE4SS-LIB INTERFACE
 )
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
+
+cmake_path(SET DEPLOY_PATH "C:/XboxGames/The Elder Scrolls IV- Oblivion Remastered/Content/OblivionRemastered/Binaries/WinGDK/ue4ss/Mods/QuickSleepWait/dlls")
+add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_FILE:${TARGET}>
+            "${DEPLOY_PATH}/main.dll"
+#        COMMAND ${CMAKE_COMMAND} -E copy
+#            "$<TARGET_FILE_DIR:${TARGET}>/${TARGET}.pdb"
+#            "${DEPLOY_PATH}/main.pdb"
+)
