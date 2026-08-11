@@ -23,11 +23,6 @@ FetchContent_Declare(
         GIT_TAG 40626af88bd7df9a5fb80be7b25ac85b122d6c21 # 11.2.0
         GIT_SHALLOW TRUE
 )
-# TODO: replace with generator?
-add_compile_definitions(CMAKE_BUILD_TYPE=Game__Shipping__Win64)
-add_compile_definitions(UE_BUILD_SHIPPING=1)
-add_compile_definitions(UBT_COMPILED_PLATFORM=Windows)
-add_compile_definitions(PLATFORM_WINDOWS=1)
 FetchContent_Declare(
         RE-UE4SS
         GIT_REPOSITORY https://github.com/UE4SS-RE/RE-UE4SS.git
@@ -131,7 +126,12 @@ target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
         IMPORTED_LOCATION "${RUL_SRC_DIR}/ue4ss/UE4SS.lib"
-#        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
+        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
+)
+target_compile_definitions(RE-UE4SS-LIB INTERFACE
+        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:UE_BUILD_SHIPPING=1>"
+        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:UBT_COMPILED_PLATFORM=Windows>"
+        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:PLATFORM_WINDOWS=1>"
 )
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
