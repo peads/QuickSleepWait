@@ -80,9 +80,8 @@ FetchContent_GetProperties(
         POPULATED FMT_IS_POPULATED
 )
 
+find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
 if(NOT EXISTS "${RUL_SRC_DIR}/ue4ss/UE4SS.lib")
-    find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
-    message(STATUS "${BASH_EXECUTABLE}")
     cmake_path(GET BASH_EXECUTABLE PARENT_PATH GIT_BASH_USR_BIN)
 
     #TODO: When cmake 4.4 becomes more common move this ugly garbage to the ENVIRONMENT option
@@ -151,6 +150,9 @@ target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
 
 cmake_path(SET DEPLOY_PATH "C:/XboxGames/The Elder Scrolls IV- Oblivion Remastered/Content/OblivionRemastered/Binaries/WinGDK/ue4ss/Mods/QuickSleepWait/dlls")
+cmake_path(GET DEPLOY_PATH PARENT_PATH DEPLOY_PATH_ROOT)
+cmake_path(GET DEPLOY_PATH_ROOT PARENT_PATH DEPLOY_PATH_ROOT)
+
 add_custom_command(TARGET ${TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
             $<TARGET_FILE:${TARGET}>
@@ -158,4 +160,6 @@ add_custom_command(TARGET ${TARGET} POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy
 #            "$<TARGET_FILE_DIR:${TARGET}>/${TARGET}.pdb"
 #            "${DEPLOY_PATH}/main.pdb"
+        COMMAND ${BASH_EXECUTABLE}
+            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
 )
