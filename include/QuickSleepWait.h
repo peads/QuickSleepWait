@@ -20,6 +20,8 @@
 #include <Mod/CppUserModBase.hpp>
 #ifndef IS_QSW_RELEASE
 #include <UE4SSProgram.hpp>
+#else
+#include <Mod/CppMod.hpp>
 #endif
 #include <Syx/Syx.h>
 
@@ -41,4 +43,19 @@
 #define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe"
 #define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
 #endif
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
+
+inline HMODULE GetCurrentModuleIntrinsic()
+{
+    // The base address of the module is its HMODULE handle
+    return (HMODULE) &__ImageBase;
+}
+
+#define QUICK_SLEEP_WAIT_API __declspec(dllexport)
+
+extern "C" {
+    QUICK_SLEEP_WAIT_API CppUserModBase *start_mod();
+
+    QUICK_SLEEP_WAIT_API void uninstall_mod(const CppUserModBase *mod);
+}
 #endif //QSW_H

@@ -113,10 +113,19 @@ class QuickSleepWait final : public CppUserModBase
                 case State::SUCCESS:
                 case State::FAILURE:
                 {
-#ifdef IS_QSW_RELEASE
-                    state = State::DESTROYED;
-#else
                     state = State::DESTROYING;
+#ifdef IS_QSW_RELEASE
+                    // below is basically what CppMod::uninstall boils down to:
+                    // HMODULE module = LoadLibraryEx("/path/to/dll", ...)
+                    // ...
+                    // auto proc = reinterpret_cast<void(*)(CppUserModBase *)>(
+                    //     GetProcAddress(module, "uninstall_mod"));
+                    // proc(module);
+                    // So, we'll modify that slightly to get around the proper access methods
+                    // being optimized out in the release UE4SS.dll(s) (hint: it's just by forward-
+                    // declaring the exported functions and adding a call to free this dll).
+                    uninstall_mod(this);
+#else
                     CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
                              UE4SSProgram::IsInstalled::Yes,
                              UE4SSProgram::IsStarted::Yes);
@@ -129,7 +138,7 @@ class QuickSleepWait final : public CppUserModBase
                 break;
                 default:
 #ifdef QSW_DEBUG
-                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] State: {}"), (uint32_t)state);
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] State: {}\n"), (uint32_t)state);
 #endif
                     return;
             }
@@ -144,8 +153,6 @@ class QuickSleepWait final : public CppUserModBase
         }
 };
 
-#define QUICK_SLEEP_WAIT_API __declspec(dllexport)
-
 extern "C" {
     QUICK_SLEEP_WAIT_API CppUserModBase *start_mod()
     {
@@ -155,5 +162,8 @@ extern "C" {
     QUICK_SLEEP_WAIT_API void uninstall_mod(const CppUserModBase *mod)
     {
         delete mod;
+#ifdef IS_QSW_RELEASE
+        FreeLibrary(GetCurrentModuleIntrinsic());
+#endif
     }
 }

@@ -123,7 +123,6 @@ target_include_directories(${TARGET} PRIVATE ${IGTE_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
-target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
