@@ -26,15 +26,23 @@ FetchContent_Declare(
 FetchContent_Declare(
         RE-UE4SS
         GIT_REPOSITORY https://github.com/UE4SS-RE/RE-UE4SS.git
-        GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
+#        GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
+        GIT_TAG bc66bb187f095307ecf4ac56c2691ed0cd046b19 # commit of dll on Nexus
         GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
         PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/DynamicOutput.patch" || ${CMAKE_COMMAND} -E true
+)
+FetchContent_Declare(
+        zydis
+        GIT_REPOSITORY git@github.com:zyantific/zydis.git
+        GIT_TAG a2278f1d254e492f6a6b39f6cb5d1f5d515659dc #v4.1.1
+        GIT_SHALLOW TRUE
 )
 FetchContent_Populate(RE-UE4SS)
 FetchContent_Populate(ImGui)
 FetchContent_Populate(ImGuiTextEdit)
 FetchContent_Populate(fmtlib)
 FetchContent_Populate(RE-UE4SS-LIB)
+FetchContent_MakeAvailable(zydis)
 
 set(TMP_MSVC ${MSVC})
 unset(MSVC)
@@ -80,6 +88,13 @@ FetchContent_GetProperties(
         POPULATED FMT_IS_POPULATED
 )
 
+FetchContent_GetProperties(
+        zydis
+        SOURCE_DIR ZY_SRC_DIR
+        BINARY_DIR ZY_BIN_DIR
+        POPULATED ZY_IS_POPULATED
+)
+
 find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
 if(NOT EXISTS "${RUL_SRC_DIR}/ue4ss/UE4SS.lib")
     cmake_path(GET BASH_EXECUTABLE PARENT_PATH GIT_BASH_USR_BIN)
@@ -101,7 +116,6 @@ add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
 add_library(RE-UE4SS-LIB STATIC IMPORTED)
 
 target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-#target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include/Unreal/Core)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/generated_include)
@@ -123,31 +137,37 @@ target_include_directories(${TARGET} PRIVATE ${IGTE_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
-target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
+target_include_directories(${TARGET} PRIVATE ${ZY_SRC_DIR}/include)
+target_include_directories(${TARGET} PRIVATE ${ZY_SRC_DIR}/dependencies/zycore/include)
+target_link_libraries(${TARGET} PRIVATE Zydis)
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
         IMPORTED_LOCATION "${RUL_SRC_DIR}/ue4ss/UE4SS.lib"
         MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
+        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 RelWithDebInfo
 )
 target_compile_definitions(RE-UE4SS-LIB INTERFACE
-        "$<$<CONFIG:Release>:UE_BUILD_SHIPPING=1>"
-        "$<$<CONFIG:Release>:UE_GAME=1>"
-        "$<$<CONFIG:Release>:UE_EDITOR=0>"
-        "$<$<CONFIG:Release>:UE_SERVER=0>"
-        "$<$<CONFIG:Release>:UE_BUILD_SHIPPING_WITH_EDITOR=0>"
-        "$<$<CONFIG:Release>:UE_BUILD_DOCS=0>"
-        "$<$<CONFIG:Release>:USE_LOGGING_IN_SHIPPING=0>"
-        "$<$<CONFIG:Release>:USE_CHECKS_IN_SHIPPING=0>"
-        "$<$<CONFIG:Release>:USE_ENSURES_IN_SHIPPING=0>"
-        "$<$<CONFIG:Release>:FORCE_USE_STATS=0>"
-        "$<$<CONFIG:Release>:USE_NULL_RHI=1>"
-        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:UBT_COMPILED_PLATFORM=Windows>"
-        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:PLATFORM_WINDOWS=1>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:UE_BUILD_SHIPPING=1>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:UE_GAME=1>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:UE_EDITOR=0>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:UE_SERVER=0>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:UE_BUILD_SHIPPING_WITH_EDITOR=0>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:UE_BUILD_DOCS=0>"
+#        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:USE_LOGGING_IN_SHIPPING=0>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:USE_CHECKS_IN_SHIPPING=0>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:USE_ENSURES_IN_SHIPPING=0>"
+        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:FORCE_USE_STATS=0>"
+#        "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:USE_NULL_RHI=1>"
+        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:UBT_COMPILED_PLATFORM=Windows>"
+        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:PLATFORM_WINDOWS=1>"
 )
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
+if(DEFINED QSW_DEBUG)
+    target_compile_definitions(${TARGET} PRIVATE IS_QSW_DEBUG="${QSW_DEBUG}")
+endif()
 
 cmake_path(SET DEPLOY_PATH "C:/XboxGames/The Elder Scrolls IV- Oblivion Remastered/Content/OblivionRemastered/Binaries/WinGDK/ue4ss/Mods/QuickSleepWait/dlls")
 cmake_path(GET DEPLOY_PATH PARENT_PATH DEPLOY_PATH_ROOT)
@@ -160,6 +180,6 @@ add_custom_command(TARGET ${TARGET} POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy
 #            "$<TARGET_FILE_DIR:${TARGET}>/${TARGET}.pdb"
 #            "${DEPLOY_PATH}/main.pdb"
-        COMMAND ${BASH_EXECUTABLE}
-            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
+#        COMMAND ${BASH_EXECUTABLE}
+#            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
 )
