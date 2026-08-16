@@ -38,13 +38,15 @@ enum class State
 // This is a branching loop condition that forces the executing thread to pause for some
 // human-perceivable amount of time while counting down to zero. The pattern is used find the
 // address of the code to be replaced at run-time.
-static inline constexpr const char *const oldPattern = "\xF3\x0F\x10\x35\xF4\x9B\xCA\x01\xF3\x0F\x58\xC6\xF3\x0F\x11\x05";
+static inline constexpr const char *const oldPattern =
+    "\xF3\x0F\x10\x35\xF4\x9B\xCA\x01\xF3\x0F\x58\xC6\xF3\x0F\x11\x05";
 static inline constexpr const char *const oldMask = "xxxx????xxxxxxxx";
 /* Brief overview of what's happening (continued) */
 // Once the location is determined, the code in memory is replaced with some that forces it to
 // break the loop (i.e. we zero out the xmm0 register and fill the remaining space with NOPs).
 // Hence, it becomes 0F 57 C0 90 ... 90, or `xorps xmm0,xmm0; nop; ... nop;`
-static inline constexpr const char *const newCode = "\x0F\x57\xC0\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90";
+static inline constexpr const char *const newCode =
+    "\x0F\x57\xC0\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90";
 
 class QuickSleepWait final : public CppUserModBase
 {

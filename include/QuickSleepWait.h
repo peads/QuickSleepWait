@@ -17,10 +17,6 @@
  */
 #ifndef QSW_H
 #define QSW_H
-// #ifdef _HAS_EXCEPTIONS
-// #undefine _HAS_EXCEPTIONS
-// #endif
-// #define _HAS_EXCEPTIONS 0
 #include <Mod/CppUserModBase.hpp>
 #include <Syx/Syx.h>
 #ifndef IS_QSW_RELEASE
@@ -29,11 +25,6 @@
 #ifdef IS_QSW_DEBUG
 #include <Debug/debug.hpp>
 #endif
-
-// #ifdef UNICODE
-// #define OBR_WIN64 STR("OblivionRemastered-Win64-Shipping.exe")
-// #define OBR_WINGDK STR("OblivionRemastered-WinGDK-Shipping.exe")
-// #else
 #define OBR_WIN64 "OblivionRemastered-Win64-Shipping.exe"
 #define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
 #define SIZE 12

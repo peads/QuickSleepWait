@@ -8,10 +8,10 @@ FetchContent_Declare(ImGuiTextEdit
         GIT_TAG master
         GIT_SHALLOW TRUE
 )
-FetchContent_Declare(PolyHook_2
-        GIT_REPOSITORY git@github.com:stevemk14ebr/PolyHook_2_0.git
-        GIT_TAG fd2a88f09c8ae89440858fc52573656141013c7f
-)
+#FetchContent_Declare(PolyHook_2
+#        GIT_REPOSITORY git@github.com:stevemk14ebr/PolyHook_2_0.git
+#        GIT_TAG fd2a88f09c8ae89440858fc52573656141013c7f
+#)
 FetchContent_Declare(
         RE-UE4SS-LIB
         URL https://github.com/UE4SS-RE/RE-UE4SS/releases/download/experimental-latest/zDEV-UE4SS_v3.0.1-1021-g1c1a1497.zip
@@ -31,25 +31,19 @@ FetchContent_Declare(
         GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
         PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/DynamicOutput.patch" || ${CMAKE_COMMAND} -E true
 )
-FetchContent_Declare(
-        zydis
-        GIT_REPOSITORY git@github.com:zyantific/zydis.git
-        GIT_TAG a2278f1d254e492f6a6b39f6cb5d1f5d515659dc #v4.1.1
-        GIT_SHALLOW TRUE
-)
+
 FetchContent_Populate(RE-UE4SS)
 FetchContent_Populate(ImGui)
 FetchContent_Populate(ImGuiTextEdit)
 FetchContent_Populate(fmtlib)
 FetchContent_Populate(RE-UE4SS-LIB)
-FetchContent_MakeAvailable(zydis)
 
-set(TMP_MSVC ${MSVC})
-unset(MSVC)
-FetchContent_Populate(PolyHook_2)
-# re-enable 'install' and reset 'MSVC' since we're done adding PolyHook
-set(MSVC ${TMP_MSVC})
-unset(TMP_MSVC)
+#set(TMP_MSVC ${MSVC})
+#unset(MSVC)
+#FetchContent_Populate(PolyHook_2)
+## re-enable 'install' and reset 'MSVC' since we're done adding PolyHook
+#set(MSVC ${TMP_MSVC})
+#unset(TMP_MSVC)
 
 FetchContent_GetProperties(
         RE-UE4SS
@@ -69,12 +63,12 @@ FetchContent_GetProperties(
         BINARY_DIR IGTE_BIN_DIR
         POPULATED IGTE_IS_POPULATED
 )
-FetchContent_GetProperties(
-        POLYHOOK2
-        SOURCE_DIR PH2_SRC_DIR
-        BINARY_DIR PH2_BIN_DIR
-        POPULATED PH2_IS_POPULATED
-)
+#FetchContent_GetProperties(
+#        POLYHOOK2
+#        SOURCE_DIR PH2_SRC_DIR
+#        BINARY_DIR PH2_BIN_DIR
+#        POPULATED PH2_IS_POPULATED
+#)
 FetchContent_GetProperties(
         RE-UE4SS-LIB
         SOURCE_DIR RUL_SRC_DIR
@@ -86,13 +80,6 @@ FetchContent_GetProperties(
         SOURCE_DIR FMT_SRC_DIR
         BINARY_DIR FMT_BIN_DIR
         POPULATED FMT_IS_POPULATED
-)
-
-FetchContent_GetProperties(
-        zydis
-        SOURCE_DIR ZY_SRC_DIR
-        BINARY_DIR ZY_BIN_DIR
-        POPULATED ZY_IS_POPULATED
 )
 
 find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
@@ -131,16 +118,13 @@ target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/LuaRaw/
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Constructs/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Function/include)
 target_include_directories(${TARGET} PRIVATE ${IMGUI_SRC_DIR})
-target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/include)
-target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/dependencies/zycore/include)
+#target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/include)
+#target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/dependencies/zycore/include)
 target_include_directories(${TARGET} PRIVATE ${IGTE_SRC_DIR})
-target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
+#target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
-target_include_directories(${TARGET} PRIVATE ${ZY_SRC_DIR}/include)
-target_include_directories(${TARGET} PRIVATE ${ZY_SRC_DIR}/dependencies/zycore/include)
-target_link_libraries(${TARGET} PRIVATE Zydis)
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
@@ -167,6 +151,22 @@ target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
 if(DEFINED QSW_DEBUG)
     target_compile_definitions(${TARGET} PRIVATE IS_QSW_DEBUG="${QSW_DEBUG}")
+    FetchContent_Declare(
+            zydis
+            GIT_REPOSITORY git@github.com:zyantific/zydis.git
+            GIT_TAG a2278f1d254e492f6a6b39f6cb5d1f5d515659dc #v4.1.1
+            GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(zydis)
+    FetchContent_GetProperties(
+            zydis
+            SOURCE_DIR ZY_SRC_DIR
+            BINARY_DIR ZY_BIN_DIR
+            POPULATED ZY_IS_POPULATED
+    )
+    target_include_directories(${TARGET} PRIVATE ${ZY_SRC_DIR}/include)
+    target_include_directories(${TARGET} PRIVATE ${ZY_SRC_DIR}/dependencies/zycore/include)
+    target_link_libraries(${TARGET} PRIVATE Zydis)
 endif()
 
 cmake_path(SET DEPLOY_PATH "C:/XboxGames/The Elder Scrolls IV- Oblivion Remastered/Content/OblivionRemastered/Binaries/WinGDK/ue4ss/Mods/QuickSleepWait/dlls")

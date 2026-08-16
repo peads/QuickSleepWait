@@ -18,8 +18,8 @@
 // ReSharper disable CppMissingIncludeGuard
 #if !defined(DEBUG_HPP) && defined(IS_QSW_DEBUG)
 #define DEBUG_HPP
-#include <String/StringType.hpp>
-
+#include <filesystem>
+#include <fstream>
 #include "Zydis/Disassembler.h"
 
 namespace QSW
