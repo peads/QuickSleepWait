@@ -8,10 +8,6 @@ FetchContent_Declare(ImGuiTextEdit
         GIT_TAG master
         GIT_SHALLOW TRUE
 )
-#FetchContent_Declare(PolyHook_2
-#        GIT_REPOSITORY git@github.com:stevemk14ebr/PolyHook_2_0.git
-#        GIT_TAG fd2a88f09c8ae89440858fc52573656141013c7f
-#)
 FetchContent_Declare(
         RE-UE4SS-LIB
         URL https://github.com/UE4SS-RE/RE-UE4SS/releases/download/experimental-latest/zDEV-UE4SS_v3.0.1-1021-g1c1a1497.zip
@@ -38,13 +34,6 @@ FetchContent_Populate(ImGuiTextEdit)
 FetchContent_Populate(fmtlib)
 FetchContent_Populate(RE-UE4SS-LIB)
 
-#set(TMP_MSVC ${MSVC})
-#unset(MSVC)
-#FetchContent_Populate(PolyHook_2)
-## re-enable 'install' and reset 'MSVC' since we're done adding PolyHook
-#set(MSVC ${TMP_MSVC})
-#unset(TMP_MSVC)
-
 FetchContent_GetProperties(
         RE-UE4SS
         SOURCE_DIR UE4SS_SRC_DIR
@@ -63,12 +52,6 @@ FetchContent_GetProperties(
         BINARY_DIR IGTE_BIN_DIR
         POPULATED IGTE_IS_POPULATED
 )
-#FetchContent_GetProperties(
-#        POLYHOOK2
-#        SOURCE_DIR PH2_SRC_DIR
-#        BINARY_DIR PH2_BIN_DIR
-#        POPULATED PH2_IS_POPULATED
-#)
 FetchContent_GetProperties(
         RE-UE4SS-LIB
         SOURCE_DIR RUL_SRC_DIR
@@ -118,10 +101,7 @@ target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/LuaRaw/
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Constructs/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Function/include)
 target_include_directories(${TARGET} PRIVATE ${IMGUI_SRC_DIR})
-#target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/include)
-#target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/dependencies/zycore/include)
 target_include_directories(${TARGET} PRIVATE ${IGTE_SRC_DIR})
-#target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
