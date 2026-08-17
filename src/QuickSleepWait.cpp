@@ -73,11 +73,8 @@ class QuickSleepWait final : public CppUserModBase
             return;
         }
 #ifdef IS_QSW_DEBUG
-        std::wstringstream ws{};
         const uintptr_t address = reinterpret_cast<uintptr_t>(addr);
-        QSW::Debug::debug(address, size, ws);
-        ws.seekp(0, std::ios::beg);
-        Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] ") + ws.str());
+        QSW::Debug::debug(address, size);
 #endif
         DWORD flOldProtect;
         if (!VirtualProtect(addr, size,PAGE_EXECUTE_READWRITE, &flOldProtect))
@@ -99,20 +96,8 @@ class QuickSleepWait final : public CppUserModBase
             return;
         }
 #ifdef IS_QSW_DEBUG
+        std::wstringstream ws{};
         QSW::Debug::debug(address, size, ws);
-        ws.seekp(0, std::ios::beg);
-
-        char c;
-        wchar_t wc;
-        int retval;
-        for (size_t i = 0; ws >> wc; ++i)
-        {
-            retval = wctomb_s(&retval, &c, 1, wc);
-            assert(c == newCode[i]);
-        }
-
-        ws.seekp(0, std::ios::beg);
-        Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] ") + ws.str());
 #endif
         state = State::SUCCESS;
     }
