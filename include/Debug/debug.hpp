@@ -18,8 +18,8 @@
 // ReSharper disable CppMissingIncludeGuard
 #if !defined(DEBUG_HPP) && defined(IS_QSW_DEBUG)
 #define DEBUG_HPP
-#include <filesystem>
-#include <fstream>
+#include <String/StringType.hpp>
+
 #include "Zydis/Disassembler.h"
 
 namespace QSW
@@ -27,39 +27,43 @@ namespace QSW
     class Debug
     {
         public:
-        static void debug(const uintptr_t addr)
-        {
-            constexpr size_t data = 16;
-            // wchar_t buf[4096];
-            ZyanUSize offset = 0;
-            ZydisDisassembledInstruction instruction;
-            uintptr_t runtime_address = addr;
-            // wchar_t *buffer = buf;
-
-            std::ofstream outFile(std::filesystem::temp_directory_path().append("debug.log"), std::ios::app);
-
-            while (ZYAN_SUCCESS(ZydisDisassembleIntel(
-                 /* machine_mode:    */ ZYDIS_MACHINE_MODE_LONG_64,
-                 /* runtime_address: */ runtime_address,
-                 /* buffer:          */ reinterpret_cast<void*>(runtime_address + offset),
-                 /* length:          */ data - offset,
-                 /* instruction:     */ &instruction )))
+            static void debug(const uintptr_t addr, const size_t data, std::wstringstream &ws)
             {
-                // wchar_t wbuf[96];
-                // const size_t len = mbstowcs(wbuf, instruction.text, 96);
-                // // len + 2
-                // swprintf(buffer, len + 3, STR("\n%s\n"), wbuf);
-                // // printf("%016" PRIX64 "  %s\n", runtime_address, instruction.text);
-                outFile << std::format("{:016X}: {}\n", runtime_address, instruction.text);
-                offset += instruction.info.length;
-                runtime_address += instruction.info.length;
-                // buffer += len + 2;
+                ZyanUSize offset = 0;
+                ZydisDisassembledInstruction instruction;
+                uintptr_t runtime_address = addr;
+                std::wstringstream outFile{};
+
+                outFile.seekp(0, std::ios::end);
+                ws.clear();
+                for (size_t i = 0; i < data; ++i)
+                {
+                    ws << std::format(STR("{:02X} "), *(uint8_t *)(addr + i));
+                }
+                ws << std::endl;
+                outFile << "\n[QuickSleepWait]\n-------------" << std::endl;
+
+                while (ZYAN_SUCCESS(ZydisDisassembleIntel(
+                                        ZYDIS_MACHINE_MODE_LONG_64,
+                                        runtime_address,
+                                        reinterpret_cast<void*>(runtime_address + offset),
+                                         (data << 2) - offset,
+                                        &instruction )))
+                {
+                    size_t retval;
+                    wchar_t buffer[96];
+                    retval = mbstowcs_s(&retval, buffer, instruction.text, std::strlen(instruction.text));
+                    outFile << std::format(STR("{:016X}:\t{}"), runtime_address, buffer);
+
+                    offset += instruction.info.length;
+                    runtime_address += instruction.info.length;
+                    outFile << std::endl;
+                }
+                outFile << "-------------" << std::endl;
+                outFile.seekp(0, std::ios::beg);
+                Output::send<LogLevel::Verbose>(outFile.str());
+                // outFile.close();
             }
-            // *(buffer + 1) = '\0';
-            // RC::Output::send<RC::LogLevel::Default>(buf);
-            outFile << std::endl;
-            outFile.close();
-        }
     };
 }
 #endif //DEBUG_HPP

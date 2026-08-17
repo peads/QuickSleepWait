@@ -46,7 +46,7 @@ static inline constexpr const char *const oldMask = "xxxx????xxxxxxxx";
 // break the loop (i.e. we zero out the xmm0 register and fill the remaining space with NOPs).
 // Hence, it becomes 0F 57 C0 90 ... 90, or `xorps xmm0,xmm0; nop; ... nop;`
 static inline constexpr const char *const newCode =
-    "\x0F\x57\xC0\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90";
+    "\x0F\x57\xC0\x90\x90\x90\x90\x90\x90\x90\x90\x90";
 
 class QuickSleepWait final : public CppUserModBase
 {
@@ -64,17 +64,21 @@ class QuickSleepWait final : public CppUserModBase
      * @param size Number of bytes to be written.
      * @param module Module containing addr.
      */
-    void replaceCode(LPVOID addr, const void *code, size_t size, const HMODULE &module)
+    void replaceCode(LPVOID addr, const void *code, const HMODULE &module, const size_t size)
     {
-#ifdef IS_QSW_DEBUG
-        QSW::Debug::debug(reinterpret_cast<uintptr_t>(addr));
-#endif
         state = State::FAILURE;
-        if (!addr || !module || !code)
+        if (!addr || !module || !code || !size)
         {
+            Output::send<LogLevel::Warning>(STR("[QuickSleepWait] Failed to flush cache.\n"));
             return;
         }
-
+#ifdef IS_QSW_DEBUG
+        std::wstringstream ws{};
+        const uintptr_t address = reinterpret_cast<uintptr_t>(addr);
+        QSW::Debug::debug(address, size, ws);
+        ws.seekp(0, std::ios::beg);
+        Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] ") + ws.str());
+#endif
         DWORD flOldProtect;
         if (!VirtualProtect(addr, size,PAGE_EXECUTE_READWRITE, &flOldProtect))
         {
@@ -95,7 +99,20 @@ class QuickSleepWait final : public CppUserModBase
             return;
         }
 #ifdef IS_QSW_DEBUG
-        QSW::Debug::debug(reinterpret_cast<uintptr_t>(addr));
+        QSW::Debug::debug(address, size, ws);
+        ws.seekp(0, std::ios::beg);
+
+        char c;
+        wchar_t wc;
+        int retval;
+        for (size_t i = 0; ws >> wc; ++i)
+        {
+            retval = wctomb_s(&retval, &c, 1, wc);
+            assert(c == newCode[i]);
+        }
+
+        ws.seekp(0, std::ios::beg);
+        Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] ") + ws.str());
 #endif
         state = State::SUCCESS;
     }
@@ -156,13 +173,10 @@ class QuickSleepWait final : public CppUserModBase
                         HMODULE module = nullptr;
                         replaceCode(reinterpret_cast<LPVOID>(
                                         findModule(oldPattern, oldMask, module)),
-                                    newCode,
-                                    SIZE,
-                                    module);
+                                    newCode, module, SIZE);
                     }
                 case State::SUCCESS:
                     Output::send<LogLevel::Default>(STR("[QuickSleepWait] Success\n"));
-
                 case State::FAILURE:
                 {
 #ifdef IS_QSW_RELEASE
