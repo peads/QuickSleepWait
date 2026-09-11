@@ -1,8 +1,8 @@
 diff --git a/Syx/Syx.h b/Syx/Syx.h
-index 4a30a96..5aecfa6 100644
+index 4a30a96..4db3ade 100644
 --- a/Syx/Syx.h
 +++ b/Syx/Syx.h
-@@ -1,10 +1,15 @@
+@@ -1,10 +1,10 @@
 +#pragma once
  #include <stdexcept>
  #include <vector>
@@ -13,40 +13,46 @@ index 4a30a96..5aecfa6 100644
  #include <Windows.h>
 -
 +#include <Psapi.h>
-+#ifdef UNICODE
-+#define wcharptr_t LPCWSTR
-+#else
-+#define wcharptr_t LPCSTR
-+#endif
  /**
   * SyxLib is a C++ class that provides functions for memory operations and pattern searching in a Windows environment.
   * It simplifies common memory-related tasks such as reading and writing memory, searching for patterns in memory,
-@@ -43,11 +48,11 @@ public:
+@@ -43,16 +43,20 @@ public:
       * @param szModule The name of the module.
       * @return MODULEINFO structure containing information about the module.
       */
 -    static MODULEINFO GetModuleInfo(const wchar_t* szModule)
-+    static MODULEINFO GetModuleInfo(wcharptr_t szModule)
++    static MODULEINFO GetModuleInfo(HMODULE hModule)
      {
 -        MODULEINFO modinfo{ 0 };
 -        HMODULE hModule = GetModuleHandle(szModule);
 -        if (hModule == 0)
-+        MODULEINFO modinfo{ nullptr };
-+        const HMODULE hModule = GetModuleHandle(szModule);
++        MODULEINFO modinfo{nullptr};
 +        if (hModule == nullptr)
              return modinfo;
          GetModuleInformation(GetCurrentProcess(), hModule, &modinfo, sizeof(MODULEINFO));
          return modinfo;
-@@ -82,15 +87,16 @@ public:
+     }
+ 
++    static MODULEINFO GetModuleInfo(TCHAR *szModule)
++    {
++        return GetModuleInfo(GetModuleHandle(szModule));
++    }
++
+     /**
+      * Searches for a pattern in a specified memory region.
+      *
+@@ -82,20 +86,22 @@ public:
       * @param mask The mask specifying which bytes in the pattern to consider.
       * @return The address of the found pattern, or NULL if not found.
       */
 -    static uintptr_t FindPatternA(const wchar_t* module, char* pattern, char* mask)
-+    static uintptr_t FindPatternA(wcharptr_t module, char* pattern, char* mask)
++    template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
++    static uintptr_t FindPatternA(HMODULE module, T pattern, T mask)
      {
          MODULEINFO mInfo = GetModuleInfo(module);
-         uintptr_t base = (uintptr_t)mInfo.lpBaseOfDll;//10000000
+-        uintptr_t base = (uintptr_t)mInfo.lpBaseOfDll;//10000000
 -        uintptr_t size = (uintptr_t)mInfo.SizeOfImage;//6000000
++        uintptr_t base = (uintptr_t) mInfo.lpBaseOfDll;//10000000
 +        uintptr_t size = mInfo.SizeOfImage;//6000000
  
 -        uintptr_t patternLength = (uintptr_t)strlen(mask);
@@ -58,7 +64,25 @@ index 4a30a96..5aecfa6 100644
          {
              bool found = true;
              for (uintptr_t j = 0; j < patternLength; j++)
-@@ -162,7 +168,7 @@ public:
+             {
+-                found &= mask[j] == '?' || pattern[j] == *(char*)(base + i + j);
++                found &= mask[j] == '?' || pattern[j] == *(char*) (base + i + j);
+             }
+             if (found)
+             {
+@@ -106,6 +112,11 @@ public:
+         return NULL;
+     }
+ 
++    template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
++    static uintptr_t FindPatternA(TCHAR *module, T pattern, T mask)
++    {
++        return FindPatternA(GetModuleHandle(module), pattern, mask);
++    }
+     /**
+       * Writes a value to a memory location specified by a nested pointer.
+       *
+@@ -162,7 +173,7 @@ public:
      {
          // Allocate a memory page that is going to contain executable code.
          MEMORY_BASIC_INFORMATION mbi;
@@ -67,7 +91,7 @@ index 4a30a96..5aecfa6 100644
          for (SIZE_T addr = reinterpret_cast<SIZE_T>(src); addr > reinterpret_cast<SIZE_T>(src) - 0x80000000; addr = reinterpret_cast<SIZE_T>(mbi.BaseAddress) - 1)
          {
              if (!VirtualQuery(reinterpret_cast<LPCVOID>(addr), &mbi, sizeof(mbi)))
-@@ -172,7 +178,7 @@ public:
+@@ -172,7 +183,7 @@ public:
  
              if (mbi.State == MEM_FREE)
              {

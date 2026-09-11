@@ -20,11 +20,11 @@ using namespace RC;
 
 enum class State
 {
+    FAILURE,
+    SUCCESS,
     CONSTRUCTED,
     UNREAL_READY,
     WORKING,
-    SUCCESS,
-    FAILURE,
     DESTROYING,
     DESTROYED
 };
@@ -49,38 +49,50 @@ class QuickSleepWait final : public CppUserModBase
 {
     State state;
 
-    void replaceCode(LPVOID addr)
+    void cleanUp()
     {
-        if (!addr)
+#ifdef IS_QSW_RELEASE
+        state = State::DESTROYED;
+#else
+        state = State::DESTROYING;
+        CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
+                 UE4SSProgram::IsInstalled::Yes,
+                 UE4SSProgram::IsStarted::Yes);
+        if (thisMod)
         {
-            state = State::FAILURE;
+            thisMod->uninstall();
         }
-#ifdef QSW_DEBUG
-        Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Address: {}\n"), addr);
 #endif
-        DWORD flOldProtect;
-        if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
-        {
-            state = State::FAILURE;
-        }
-        memcpy(addr, newCode, NOP_SIZE);
-        if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
-        {
-            state = State::FAILURE;
-        }
-        state = State::SUCCESS;
     }
 
-    static uintptr_t findModule()
+    // ReSharper disable once CppParameterMayBeConst
+    static bool replaceCode(void *addr, HMODULE module = nullptr)
     {
-        char pattern[] = OLD_CODE_PATTERN;
-        char mask[] = OLD_CODE_MASK;
-        uintptr_t addr = NULL;
-        if (addr = Syx::FindPatternA(OBR_WIN64, pattern, mask); !addr)
+        if (!addr)
+            return false;
+
+        DWORD flOldProtect;
+        if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
+            return false;
+
+        memcpy(addr, newCode, NOP_SIZE);
+        if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
+            return false;
+
+        if(module)
+            FlushInstructionCache(module, addr, NOP_SIZE);
+
+        return true;
+    }
+
+    static HMODULE findModule()
+    {
+        HMODULE result = nullptr;
+        if (result = GetModuleHandle(OBR_WIN64); !result)
         {
-            addr = Syx::FindPatternA(OBR_WINGDK, pattern, mask);
+            result = GetModuleHandle(OBR_WINGDK);
         }
-        return addr;
+        return result;
     }
 
     public:
@@ -108,30 +120,24 @@ class QuickSleepWait final : public CppUserModBase
             {
                 case State::UNREAL_READY:
                     state = State::WORKING;
-                    replaceCode(reinterpret_cast<LPVOID>(findModule()));
+                    {
+                        const HMODULE module = findModule();
+                        state = static_cast<State>(replaceCode(reinterpret_cast<void*>(Syx::FindPatternA(module,
+                                        OLD_CODE_PATTERN,
+                                        OLD_CODE_MASK)),
+                                    module));
+                    }
                     break;
                 case State::SUCCESS:
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Success\n"));
+                    cleanUp();
+                    break;
                 case State::FAILURE:
-                {
-#ifdef IS_QSW_RELEASE
-                    state = State::DESTROYED;
-#else
-                    state = State::DESTROYING;
-                    CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
-                             UE4SSProgram::IsInstalled::Yes,
-                             UE4SSProgram::IsStarted::Yes);
-                    if (thisMod)
-                    {
-                        thisMod->uninstall();
-                    }
-#endif
-                }
-                break;
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Failure\n"));
+                    cleanUp();
+                    break;
                 default:
-#ifdef QSW_DEBUG
-                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] State: {}"), (uint32_t)state);
-#endif
-                    return;
+                    break;
             }
         }
 

@@ -4,6 +4,15 @@ project(${TARGET})
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND MSVC)
+    add_compile_options(/clang:-m64 /clang:-O3 /clang:-march=native /WX- /Gy /clang:-flto /clang:-fomit-frame-pointer)
+elseif (MSVC)
+    add_compile_options(/O2 /Ox /Ob2 /Ot /Oy /Oi /WX- /GL /Gy /Gm- /MP)
+endif ()
+add_link_options(/OPT:REF /OPT:ICF=3 /LTCG /DEBUG:NONE /EMITPOGOPHASEINFO)
+#add_compile_definitions(WIN32_LEAN_AND_MEAN)
+add_compile_definitions(OPTIMIZATIONS_ON)
+
 find_package(Git REQUIRED)
 include(FetchContent)
 
