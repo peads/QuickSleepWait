@@ -18,30 +18,25 @@ FetchContent_Declare(
         URL_HASH SHA256=497f7106e19c866f38511699ffaecc17ae2a032682066d5ed8029ac61532d517
 )
 FetchContent_Declare(
+        RE-UE4SS
+        GIT_REPOSITORY https://github.com/UE4SS-RE/RE-UE4SS.git
+#        GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
+        GIT_TAG bc66bb187f095307ecf4ac56c2691ed0cd046b19 # commit of dll on Nexus
+        GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
+        PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/re4uess.patch" || ${CMAKE_COMMAND} -E true
+        PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/DynamicOutput.patch" || ${CMAKE_COMMAND} -E true
+)
+FetchContent_Declare(
         fmtlib
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
         GIT_TAG 40626af88bd7df9a5fb80be7b25ac85b122d6c21 # 11.2.0
         GIT_SHALLOW TRUE
 )
-FetchContent_Declare(
-        RE-UE4SS
-        GIT_REPOSITORY https://github.com/UE4SS-RE/RE-UE4SS.git
-        GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
-        GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
-        PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/DynamicOutput.patch" || ${CMAKE_COMMAND} -E true
-)
+FetchContent_Populate(fmtlib)
 FetchContent_Populate(RE-UE4SS)
 FetchContent_Populate(ImGui)
 FetchContent_Populate(ImGuiTextEdit)
-FetchContent_Populate(fmtlib)
-FetchContent_Populate(RE-UE4SS-LIB)
-
-set(TMP_MSVC ${MSVC})
-unset(MSVC)
 FetchContent_Populate(PolyHook_2)
-# re-enable 'install' and reset 'MSVC' since we're done adding PolyHook
-set(MSVC ${TMP_MSVC})
-unset(TMP_MSVC)
 
 FetchContent_GetProperties(
         RE-UE4SS
@@ -68,18 +63,12 @@ FetchContent_GetProperties(
         POPULATED PH2_IS_POPULATED
 )
 FetchContent_GetProperties(
-        RE-UE4SS-LIB
-        SOURCE_DIR RUL_SRC_DIR
-        BINARY_DIR RUL_BIN_DIR
-        POPULATED RUL_IS_POPULATED
-)
-FetchContent_GetProperties(
         fmtlib
         SOURCE_DIR FMT_SRC_DIR
         BINARY_DIR FMT_BIN_DIR
         POPULATED FMT_IS_POPULATED
 )
-
+cmake_path(SET RUL_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/re-ue4ss-lib-src")
 find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
 if(NOT EXISTS "${RUL_SRC_DIR}/ue4ss/UE4SS.lib")
     cmake_path(GET BASH_EXECUTABLE PARENT_PATH GIT_BASH_USR_BIN)
@@ -97,55 +86,45 @@ if(NOT EXISTS "${RUL_SRC_DIR}/ue4ss/UE4SS.lib")
     set(ENV{PATH} "${OLD_PATH}")
 endif()
 
-add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
 add_library(RE-UE4SS-LIB STATIC IMPORTED)
 
-target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-#target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include/Unreal/Core)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/generated_include)
-target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Unreal/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/File/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/String/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/DynamicOutput/include)
-target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/MProgram/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Input/include)
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Helpers/include)
-target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/LuaMadeSimple/include)
-target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/LuaRaw/include)
-target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Constructs/include)
-target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/deps/first/Function/include)
 target_include_directories(${TARGET} PRIVATE ${IMGUI_SRC_DIR})
-target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/include)
-target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR}/zydis/dependencies/zycore/include)
 target_include_directories(${TARGET} PRIVATE ${IGTE_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${PH2_SRC_DIR})
 target_include_directories(${TARGET} PRIVATE ${UE4SS_SRC_DIR}/UE4SS/include)
 target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
-target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
-target_include_directories(${TARGET} PRIVATE ${SYX_SRC_DIR})
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
         IMPORTED_LOCATION "${RUL_SRC_DIR}/ue4ss/UE4SS.lib"
-        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 Release
+        MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 $<CONFIG>
 )
-target_compile_definitions(RE-UE4SS-LIB INTERFACE
-        "$<$<CONFIG:Release>:UE_BUILD_SHIPPING=1>"
-        "$<$<CONFIG:Release>:UE_GAME=1>"
-        "$<$<CONFIG:Release>:UE_EDITOR=0>"
-        "$<$<CONFIG:Release>:UE_SERVER=0>"
-        "$<$<CONFIG:Release>:UE_BUILD_SHIPPING_WITH_EDITOR=0>"
-        "$<$<CONFIG:Release>:UE_BUILD_DOCS=0>"
-        "$<$<CONFIG:Release>:USE_LOGGING_IN_SHIPPING=0>"
-        "$<$<CONFIG:Release>:USE_CHECKS_IN_SHIPPING=0>"
-        "$<$<CONFIG:Release>:USE_ENSURES_IN_SHIPPING=0>"
-        "$<$<CONFIG:Release>:FORCE_USE_STATS=0>"
-        "$<$<CONFIG:Release>:USE_NULL_RHI=1>"
-        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:UBT_COMPILED_PLATFORM=Windows>"
-        "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:PLATFORM_WINDOWS=1>"
-)
+set(COMPILE_DEFNS
+        UE_BUILD_SHIPPING=1
+        UE_GAME=1
+        UE_EDITOR=0
+        UE_SERVER=0
+        UE_BUILD_SHIPPING_WITH_EDITOR=0
+        UE_BUILD_DOCS=0
+        USE_LOGGING_IN_SHIPPING=0
+        USE_CHECKS_IN_SHIPPING=0
+        USE_ENSURES_IN_SHIPPING=0
+        FORCE_USE_STATS=0
+        USE_NULL_RHI=1
+        UBT_COMPILED_PLATFORM=$<PLATFORM_ID>
+        PLATFORM_WINDOWS=1)
+#        "$<$<CXX_COMPILER_ID:MSVC>:PLATFORM_WINDOWS=1>")
+target_compile_definitions(RE-UE4SS-LIB INTERFACE ${COMPILE_DEFNS})
+target_compile_definitions(${TARGET} INTERFACE ${COMPILE_DEFNS})
+
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
 
@@ -158,8 +137,11 @@ add_custom_command(TARGET ${TARGET} POST_BUILD
             $<TARGET_FILE:${TARGET}>
             "${DEPLOY_PATH}/main.dll"
 #        COMMAND ${CMAKE_COMMAND} -E copy
+#            "${CMAKE_CURRENT_SOURCE_DIR}/resources/asm.json"
+#            "${DEPLOY_PATH}/asm.json"
+#        COMMAND ${CMAKE_COMMAND} -E copy
 #            "$<TARGET_FILE_DIR:${TARGET}>/${TARGET}.pdb"
-#            "${DEPLOY_PATH}/main.pdb"
-        COMMAND ${BASH_EXECUTABLE}
-            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
+#            "${DEPLOY_PATH}/"
+#        COMMAND ${BASH_EXECUTABLE}
+#            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
 )

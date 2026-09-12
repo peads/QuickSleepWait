@@ -20,67 +20,33 @@ using namespace RC;
 
 enum class State
 {
+    FAILURE,
+    SUCCESS,
     CONSTRUCTED,
     UNREAL_READY,
     WORKING,
-    SUCCESS,
-    FAILURE,
     DESTROYING,
     DESTROYED
-};
-
-static constexpr uint8_t newCode[] =
-{
-    0x0F,   // xorps xmm0,xmm0
-    0x57,
-    0xC0,
-    0x90,   // nop
-    0x90,   // nop
-    0x90,   // ...
-    0x90,
-    0x90,
-    0x90,
-    0x90,
-    0x90,
-    0x90
 };
 
 class QuickSleepWait final : public CppUserModBase
 {
     State state;
 
-    void replaceCode(LPVOID addr)
+    void cleanUp()
     {
-        if (!addr)
+#ifdef IS_QSW_RELEASE
+        state = State::DESTROYED;
+#else
+        state = State::DESTROYING;
+        CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
+                 UE4SSProgram::IsInstalled::Yes,
+                 UE4SSProgram::IsStarted::Yes);
+        if (thisMod)
         {
-            state = State::FAILURE;
+            thisMod->uninstall();
         }
-#ifdef QSW_DEBUG
-        Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Address: {}\n"), addr);
 #endif
-        DWORD flOldProtect;
-        if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
-        {
-            state = State::FAILURE;
-        }
-        memcpy(addr, newCode, NOP_SIZE);
-        if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
-        {
-            state = State::FAILURE;
-        }
-        state = State::SUCCESS;
-    }
-
-    static uintptr_t findModule()
-    {
-        char pattern[] = OLD_CODE_PATTERN;
-        char mask[] = OLD_CODE_MASK;
-        uintptr_t addr = NULL;
-        if (addr = Syx::FindPatternA(OBR_WIN64, pattern, mask); !addr)
-        {
-            addr = Syx::FindPatternA(OBR_WINGDK, pattern, mask);
-        }
-        return addr;
     }
 
     public:
@@ -108,30 +74,29 @@ class QuickSleepWait final : public CppUserModBase
             {
                 case State::UNREAL_READY:
                     state = State::WORKING;
-                    replaceCode(reinterpret_cast<LPVOID>(findModule()));
+                    {
+                        static const char *names[] = {OBR_WIN64, OBR_WINGDK};
+                        static PMO::Pattern pattern(SLEEP_WAIT_PATTERN,
+                                                    SLEEP_WAIT_MASK,
+                                                    SLEEP_WAIT_CODE);
+                        static const HMODULE module = PMO::findModule(names);
+                        auto [lpBaseOfDll, SizeOfImage, EntryPoint] = PMO::getImportInfo(module);
+                        const PMO::PointerUnion pu{lpBaseOfDll};
+
+                        state = static_cast<State>(findPatterns(pu.address, SizeOfImage, pattern) &&
+                            replaceCode(pattern.back(), pattern.code.str, pattern.codeLen));
+                    }
                     break;
                 case State::SUCCESS:
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Success\n"));
+                    cleanUp();
+                    break;
                 case State::FAILURE:
-                {
-#ifdef IS_QSW_RELEASE
-                    state = State::DESTROYED;
-#else
-                    state = State::DESTROYING;
-                    CppMod *thisMod = UE4SSProgram::find_mod_by_name<CppMod>(ModName,
-                             UE4SSProgram::IsInstalled::Yes,
-                             UE4SSProgram::IsStarted::Yes);
-                    if (thisMod)
-                    {
-                        thisMod->uninstall();
-                    }
-#endif
-                }
-                break;
+                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] Failure\n"));
+                    cleanUp();
+                    break;
                 default:
-#ifdef QSW_DEBUG
-                    Output::send<LogLevel::Verbose>(STR("[QuickSleepWait] State: {}"), (uint32_t)state);
-#endif
-                    return;
+                    break;
             }
         }
 
@@ -143,8 +108,6 @@ class QuickSleepWait final : public CppUserModBase
             state = State::UNREAL_READY;
         }
 };
-
-#define QUICK_SLEEP_WAIT_API __declspec(dllexport)
 
 extern "C" {
     QUICK_SLEEP_WAIT_API CppUserModBase *start_mod()
