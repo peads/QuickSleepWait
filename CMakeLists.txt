@@ -21,7 +21,7 @@ include(FetchContent)
 FetchContent_Declare(
         PMO
         GIT_REPOSITORY https://github.com/peads/pmo.git
-        GIT_TAG templates_are_annoying
+        GIT_TAG v1.0.1
 )
 
 FetchContent_MakeAvailable(PMO)
