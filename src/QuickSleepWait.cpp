@@ -29,22 +29,6 @@ enum class State
     DESTROYED
 };
 
-static constexpr uint8_t newCode[] =
-{
-    0x0F,   // xorps xmm0,xmm0
-    0x57,
-    0xC0,
-    0x90,   // nop
-    0x90,   // nop
-    0x90,   // ...
-    0x90,
-    0x90,
-    0x90,
-    0x90,
-    0x90,
-    0x90
-};
-
 class QuickSleepWait final : public CppUserModBase
 {
     State state;
@@ -65,35 +49,34 @@ class QuickSleepWait final : public CppUserModBase
 #endif
     }
 
-    // ReSharper disable once CppParameterMayBeConst
-    static bool replaceCode(void *addr, HMODULE module = nullptr)
-    {
-        if (!addr)
-            return false;
+    // static bool replaceCode(void *addr, HMODULE module = nullptr)
+    // {
+    //     if (!addr)
+    //         return false;
+    //
+    //     DWORD flOldProtect;
+    //     if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
+    //         return false;
+    //
+    //     memcpy(addr, newCode, NOP_SIZE);
+    //     if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
+    //         return false;
+    //
+    //     if(module)
+    //         FlushInstructionCache(module, addr, NOP_SIZE);
+    //
+    //     return true;
+    // }
 
-        DWORD flOldProtect;
-        if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
-            return false;
-
-        memcpy(addr, newCode, NOP_SIZE);
-        if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
-            return false;
-
-        if(module)
-            FlushInstructionCache(module, addr, NOP_SIZE);
-
-        return true;
-    }
-
-    static HMODULE findModule()
-    {
-        HMODULE result = nullptr;
-        if (result = GetModuleHandle(OBR_WIN64); !result)
-        {
-            result = GetModuleHandle(OBR_WINGDK);
-        }
-        return result;
-    }
+    // static HMODULE findModule()
+    // {
+    //     HMODULE result = nullptr;
+    //     if (result = GetModuleHandle(OBR_WIN64); !result)
+    //     {
+    //         result = GetModuleHandle(OBR_WINGDK);
+    //     }
+    //     return result;
+    // }
 
     public:
         QuickSleepWait()
@@ -121,11 +104,18 @@ class QuickSleepWait final : public CppUserModBase
                 case State::UNREAL_READY:
                     state = State::WORKING;
                     {
-                        const HMODULE module = findModule();
-                        state = static_cast<State>(replaceCode(reinterpret_cast<void*>(Syx::FindPatternA(module,
-                                        OLD_CODE_PATTERN,
-                                        OLD_CODE_MASK)),
-                                    module));
+                        static const char *names[] = {OBR_WIN64, OBR_WINGDK};
+                        static PMO::Pattern pattern(SLEEP_WAIT_PATTERN,
+                                                    SLEEP_WAIT_MASK,
+                                                    SLEEP_WAIT_CODE);
+                        static const HMODULE module = PMO::findModule(names); // TODO find where the ue4ss console iostream is hidden
+                        MODULEINFO info{};
+
+                        bool result = module && PMO::getImportInfo(module, info);
+                        result = result && findPatterns(reinterpret_cast<uintptr_t>(info.lpBaseOfDll), info.SizeOfImage,pattern);
+                        result = result && replaceCode(pattern.back(), pattern.code.str, pattern.codeLen);
+
+                        state = static_cast<State>(result);
                     }
                     break;
                 case State::SUCCESS:
