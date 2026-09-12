@@ -49,35 +49,6 @@ class QuickSleepWait final : public CppUserModBase
 #endif
     }
 
-    // static bool replaceCode(void *addr, HMODULE module = nullptr)
-    // {
-    //     if (!addr)
-    //         return false;
-    //
-    //     DWORD flOldProtect;
-    //     if (!VirtualProtect(addr,NOP_SIZE,PAGE_EXECUTE_READWRITE, &flOldProtect))
-    //         return false;
-    //
-    //     memcpy(addr, newCode, NOP_SIZE);
-    //     if (!VirtualProtect(addr, NOP_SIZE, flOldProtect, &flOldProtect))
-    //         return false;
-    //
-    //     if(module)
-    //         FlushInstructionCache(module, addr, NOP_SIZE);
-    //
-    //     return true;
-    // }
-
-    // static HMODULE findModule()
-    // {
-    //     HMODULE result = nullptr;
-    //     if (result = GetModuleHandle(OBR_WIN64); !result)
-    //     {
-    //         result = GetModuleHandle(OBR_WINGDK);
-    //     }
-    //     return result;
-    // }
-
     public:
         QuickSleepWait()
         {
@@ -108,14 +79,12 @@ class QuickSleepWait final : public CppUserModBase
                         static PMO::Pattern pattern(SLEEP_WAIT_PATTERN,
                                                     SLEEP_WAIT_MASK,
                                                     SLEEP_WAIT_CODE);
-                        static const HMODULE module = PMO::findModule(names); // TODO find where the ue4ss console iostream is hidden
-                        MODULEINFO info{};
+                        static const HMODULE module = PMO::findModule(names);
+                        auto [lpBaseOfDll, SizeOfImage, EntryPoint] = PMO::getImportInfo(module);
+                        const PMO::PointerUnion pu{lpBaseOfDll};
 
-                        bool result = module && PMO::getImportInfo(module, info);
-                        result = result && findPatterns(reinterpret_cast<uintptr_t>(info.lpBaseOfDll), info.SizeOfImage,pattern);
-                        result = result && replaceCode(pattern.back(), pattern.code.str, pattern.codeLen);
-
-                        state = static_cast<State>(result);
+                        state = static_cast<State>(findPatterns(pu.address, SizeOfImage, pattern) &&
+                            replaceCode(pattern.back(), pattern.code.str, pattern.codeLen));
                     }
                     break;
                 case State::SUCCESS:
@@ -139,8 +108,6 @@ class QuickSleepWait final : public CppUserModBase
             state = State::UNREAL_READY;
         }
 };
-
-#define QUICK_SLEEP_WAIT_API __declspec(dllexport)
 
 extern "C" {
     QUICK_SLEEP_WAIT_API CppUserModBase *start_mod()

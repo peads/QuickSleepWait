@@ -35,4 +35,5 @@
 #define SLEEP_WAIT_CODE         "\x0F\x57\xC0\x90\x90\x90\x90\x90\x90\x90\x90\x90"
 #define OBR_WIN64  "OblivionRemastered-Win64-Shipping.exe"
 #define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
+#define QUICK_SLEEP_WAIT_API __declspec(dllexport)
 #endif //QSW_H
