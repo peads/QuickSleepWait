@@ -142,6 +142,6 @@ add_custom_command(TARGET ${TARGET} POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy
 #            "$<TARGET_FILE_DIR:${TARGET}>/${TARGET}.pdb"
 #            "${DEPLOY_PATH}/"
-#        COMMAND ${BASH_EXECUTABLE}
-#            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
+        COMMAND ${BASH_EXECUTABLE}
+            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
 )

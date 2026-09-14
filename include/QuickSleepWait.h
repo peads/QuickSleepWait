@@ -17,11 +17,6 @@
  */
 #ifndef QSW_H
 #define QSW_H
-#include <Mod/CppUserModBase.hpp>
-#ifndef IS_QSW_RELEASE
-#include <UE4SSProgram.hpp>
-#endif
-#include <windows/MemoryOps.hpp>
 
 // Pattern in WinGDK 1.512:
 // "F3 0F 10 35 F4 9B CA 01 F3 0F 58 C6 F3 0F 11 05"
@@ -36,4 +31,5 @@
 #define OBR_WIN64  "OblivionRemastered-Win64-Shipping.exe"
 #define OBR_WINGDK "OblivionRemastered-WinGDK-Shipping.exe"
 #define QUICK_SLEEP_WAIT_API __declspec(dllexport)
+
 #endif //QSW_H
