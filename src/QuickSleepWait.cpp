@@ -26,7 +26,7 @@ using namespace RC;
 
 class QuickSleepWait final : public CppUserModBase
 {
-    bool state = false;
+    const bool state;
 
     void cleanUp()
     {
