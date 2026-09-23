@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
 if (NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND MSVC)
-        add_compile_options(/clang:-m64 /clang:-O3 /clang:-march=x86-64-v3 /WX- /Gy /clang:-flto /clang:-fomit-frame-pointer)
+        add_compile_options(-Zp8 /clang:-m64 /clang:-O3 /clang:-march=x86-64-v3 /WX- /Gy /clang:-flto /clang:-fomit-frame-pointer)
     elseif (MSVC)
-        add_compile_options(/O2 /Ox /Ob2 /Ot /Oy /Oi /WX- /GL /Gy /Gm- /MP)
+        add_compile_options(-Zp8 /O2 /Ob2 /Ot /Oy /Oi /WX- /GL /Gy /Gm- /MP -GS-)
     endif ()
     add_link_options(/OPT:REF /OPT:ICF=3 /LTCG /DEBUG:NONE /EMITPOGOPHASEINFO)
     add_compile_definitions(OPTIMIZATIONS_ON)
@@ -21,7 +21,7 @@ include(FetchContent)
 FetchContent_Declare(
         PMO
         GIT_REPOSITORY https://github.com/peads/pmo.git
-        GIT_TAG v1.0.1
+        GIT_TAG v1.0.4
 )
 
 FetchContent_MakeAvailable(PMO)
@@ -44,6 +44,7 @@ else()
             GIT_REPOSITORY https://github.com/UE4SS-RE/RE-UE4SS.git
             GIT_TAG main
             GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
+            GIT_CONFIG "submodule.deps/first/patternsleuth.url=https://github.com/trumank/patternsleuth.git"
     )
     FetchContent_MakeAvailable(RE-UE4SS)
     FetchContent_GetProperties(

@@ -120,14 +120,15 @@ set(COMPILE_DEFNS
         FORCE_USE_STATS=0
         USE_NULL_RHI=1
         UBT_COMPILED_PLATFORM=$<PLATFORM_ID>
-        PLATFORM_WINDOWS=1)
+        PLATFORM_WINDOWS=1
+        OPTIMIZATIONS_ON
+)
 #        "$<$<CXX_COMPILER_ID:MSVC>:PLATFORM_WINDOWS=1>")
 target_compile_definitions(RE-UE4SS-LIB INTERFACE ${COMPILE_DEFNS})
 target_compile_definitions(${TARGET} INTERFACE ${COMPILE_DEFNS})
 
 target_link_libraries(${TARGET} PRIVATE RE-UE4SS-LIB)
 target_compile_definitions(${TARGET} PRIVATE IS_QSW_RELEASE="${GENERATE_RELEASE}")
-
 cmake_path(SET DEPLOY_PATH "C:/XboxGames/The Elder Scrolls IV- Oblivion Remastered/Content/OblivionRemastered/Binaries/WinGDK/ue4ss/Mods/QuickSleepWait/dlls")
 cmake_path(GET DEPLOY_PATH PARENT_PATH DEPLOY_PATH_ROOT)
 cmake_path(GET DEPLOY_PATH_ROOT PARENT_PATH DEPLOY_PATH_ROOT)
