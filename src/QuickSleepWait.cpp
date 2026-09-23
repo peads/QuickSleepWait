@@ -66,7 +66,7 @@ extern "C" {
                                     SLEEP_WAIT_MASK,
                                     SLEEP_WAIT_CODE);
         static const HMODULE module = PMO::findModule(names);
-        auto [lpBaseOfDll, SizeOfImage, EntryPoint] = PMO::getImportInfo(module);
+        auto [lpBaseOfDll, SizeOfImage, EntryPoint] = PMO::getModuleInfo(module);
         const PMO::PointerUnion pu{lpBaseOfDll};
 
         return new QuickSleepWait(findPatterns(pu.address, SizeOfImage, pattern)
