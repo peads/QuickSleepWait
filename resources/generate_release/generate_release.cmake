@@ -1,76 +1,77 @@
-FetchContent_Declare(ImGui
-        GIT_REPOSITORY git@github.com:ocornut/imgui.git
-        GIT_TAG c6e0284ac58b3f205c95365478888f7b53b077e2 #v1.89.9
-        GIT_SHALLOW TRUE
-)
-FetchContent_Declare(ImGuiTextEdit
-        GIT_REPOSITORY git@github.com:UE4SS-RE/ImGuiColorTextEdit.git
-        GIT_TAG master
-        GIT_SHALLOW TRUE
-)
-FetchContent_Declare(PolyHook_2
-        GIT_REPOSITORY git@github.com:stevemk14ebr/PolyHook_2_0.git
-        GIT_TAG fd2a88f09c8ae89440858fc52573656141013c7f
-)
-FetchContent_Declare(
-        RE-UE4SS-LIB
-        URL https://github.com/UE4SS-RE/RE-UE4SS/releases/download/experimental-latest/zDEV-UE4SS_v3.0.1-1021-g1c1a1497.zip
-        URL_HASH SHA256=497f7106e19c866f38511699ffaecc17ae2a032682066d5ed8029ac61532d517
-)
-FetchContent_Declare(
+set(UE4SS_SRC_DIR "${CMAKE_BINARY_DIR}/_deps/re-ue4ss-src")
+set(UE4SS_BIN_DIR "${CMAKE_BINARY_DIR}/_deps/re-ue4ss-build")
+set(UE4SS_SUB_DIR "${CMAKE_BINARY_DIR}/_deps/re-ue4ss-subbuild")
+
+set(IMGUI_SRC_DIR "${CMAKE_BINARY_DIR}/_deps/imgui-src")
+set(IMGUI_BIN_DIR "${CMAKE_BINARY_DIR}/_deps/imgui-build")
+set(IMGUI_SUB_DIR "${CMAKE_BINARY_DIR}/_deps/imgui-subbuild")
+
+set(IGTE_SRC_DIR "${CMAKE_BINARY_DIR}/_deps/imguitextedit-src")
+set(IGTE_BIN_DIR "${CMAKE_BINARY_DIR}/_deps/imguitextedit-build")
+set(IGTE_SUB_DIR "${CMAKE_BINARY_DIR}/_deps/imguitextedit-subbuild")
+
+set(PH2_SRC_DIR "${CMAKE_BINARY_DIR}/_deps/polyhook_2-src")
+set(PH2_BIN_DIR "${CMAKE_BINARY_DIR}/_deps/polyhook_2-build")
+set(PH2_SUB_DIR "${CMAKE_BINARY_DIR}/_deps/polyhook_2-subbuild")
+
+set(FMT_SRC_DIR "${CMAKE_BINARY_DIR}/_deps/fmtlib-src")
+set(FMT_BIN_DIR "${CMAKE_BINARY_DIR}/_deps/fmtlib-build")
+set(FMT_SUB_DIR "${CMAKE_BINARY_DIR}/_deps/fmtlib-subbuild")
+
+FetchContent_Populate(
         RE-UE4SS
+        QUIET
         GIT_REPOSITORY https://github.com/UE4SS-RE/RE-UE4SS.git
-#        GIT_TAG f12f0bedc34a0e4fdb05f36953686a13dd10641b # experimental-latest
         GIT_TAG bc66bb187f095307ecf4ac56c2691ed0cd046b19 # commit of dll on Nexus
         GIT_CONFIG "submodule.deps/first/Unreal.url=https://github.com/Re-UE4SS/UEPseudo.git"
         PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/re4uess.patch" || ${CMAKE_COMMAND} -E true
         PATCH_COMMAND  ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/resources/DynamicOutput.patch" || ${CMAKE_COMMAND} -E true
+        SOURCE_DIR "${UE4SS_SRC_DIR}"
+        BINARY_DIR "${UE4SS_BIN_DIR}"
+        SUBBUILD_DIR "${UE4SS_SUB_DIR}"
 )
-FetchContent_Declare(
+FetchContent_Populate(
+        ImGui
+        QUIET
+        GIT_REPOSITORY git@github.com:ocornut/imgui.git
+        GIT_TAG c6e0284ac58b3f205c95365478888f7b53b077e2 #v1.89.9
+        GIT_SHALLOW TRUE
+        SOURCE_DIR "${IMGUI_SRC_DIR}"
+        BINARY_DIR "${IMGUI_BIN_DIR}"
+        SUBBUILD_DIR "${IMGUI_SUB_DIR}"
+)
+FetchContent_Populate(
+        ImGuiTextEdit
+        QUIET
+        GIT_REPOSITORY git@github.com:UE4SS-RE/ImGuiColorTextEdit.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        SOURCE_DIR "${IGTE_SRC_DIR}"
+        BINARY_DIR "${IGTE_BIN_DIR}"
+        SUBBUILD_DIR "${IGTE_SUB_DIR}"
+)
+FetchContent_Populate(
+        POLYHOOK2
+        QUIET
+        GIT_REPOSITORY git@github.com:stevemk14ebr/PolyHook_2_0.git
+        GIT_TAG fd2a88f09c8ae89440858fc52573656141013c7f
+        SOURCE_DIR "${PH2_SRC_DIR}"
+        BINARY_DIR "${PH2_BIN_DIR}"
+        SUBBUILD_DIR "${PH2_SUB_DIR}"
+)
+FetchContent_Populate(
         fmtlib
+        QUIET
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
         GIT_TAG 40626af88bd7df9a5fb80be7b25ac85b122d6c21 # 11.2.0
         GIT_SHALLOW TRUE
-)
-FetchContent_Populate(fmtlib)
-FetchContent_Populate(RE-UE4SS)
-FetchContent_Populate(ImGui)
-FetchContent_Populate(ImGuiTextEdit)
-FetchContent_Populate(PolyHook_2)
-
-FetchContent_GetProperties(
-        RE-UE4SS
-        SOURCE_DIR UE4SS_SRC_DIR
-        BINARY_DIR UE4SS_BIN_DIR
-        POPULATED UE4SS_IS_POPULATED
-)
-FetchContent_GetProperties(
-        ImGui
-        SOURCE_DIR IMGUI_SRC_DIR
-        BINARY_DIR IMGUI_BIN_DIR
-        POPULATED IMGUI_IS_POPULATED
-)
-FetchContent_GetProperties(
-        ImGuiTextEdit
-        SOURCE_DIR IGTE_SRC_DIR
-        BINARY_DIR IGTE_BIN_DIR
-        POPULATED IGTE_IS_POPULATED
-)
-FetchContent_GetProperties(
-        POLYHOOK2
-        SOURCE_DIR PH2_SRC_DIR
-        BINARY_DIR PH2_BIN_DIR
-        POPULATED PH2_IS_POPULATED
-)
-FetchContent_GetProperties(
-        fmtlib
-        SOURCE_DIR FMT_SRC_DIR
-        BINARY_DIR FMT_BIN_DIR
-        POPULATED FMT_IS_POPULATED
+        SOURCE_DIR "${FMT_SRC_DIR}"
+        BINARY_DIR "${FMT_BIN_DIR}"
+        SUBBUILD_DIR "${FMT_SUB_DIR}"
 )
 cmake_path(SET RUL_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/re-ue4ss-lib-src")
-find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
-if(NOT EXISTS "${RUL_SRC_DIR}/ue4ss/UE4SS.lib")
+if(NOT EXISTS "${RUL_SRC_DIR}/UE4SS.lib")
+    find_program(BASH_EXECUTABLE NAMES bash git-bash HINTS "[HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion;ProgramFilesDir]/Git/usr/bin" REQUIRED)
     cmake_path(GET BASH_EXECUTABLE PARENT_PATH GIT_BASH_USR_BIN)
 
     #TODO: When cmake 4.4 becomes more common move this ugly garbage to the ENVIRONMENT option
@@ -104,7 +105,7 @@ target_include_directories(${TARGET} PRIVATE ${FMT_SRC_DIR}/include)
 
 set_target_properties(RE-UE4SS-LIB PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
-        IMPORTED_LOCATION "${RUL_SRC_DIR}/ue4ss/UE4SS.lib"
+        IMPORTED_LOCATION "${RUL_SRC_DIR}/UE4SS.lib"
         MAP_IMPORTED_CONFIG_GAME_SHIPPING_WIN64 $<CONFIG>
 )
 set(COMPILE_DEFNS
@@ -123,7 +124,6 @@ set(COMPILE_DEFNS
         PLATFORM_WINDOWS=1
         OPTIMIZATIONS_ON
 )
-#        "$<$<CXX_COMPILER_ID:MSVC>:PLATFORM_WINDOWS=1>")
 target_compile_definitions(RE-UE4SS-LIB INTERFACE ${COMPILE_DEFNS})
 target_compile_definitions(${TARGET} INTERFACE ${COMPILE_DEFNS})
 
@@ -137,12 +137,10 @@ add_custom_command(TARGET ${TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
             $<TARGET_FILE:${TARGET}>
             "${DEPLOY_PATH}/main.dll"
-#        COMMAND ${CMAKE_COMMAND} -E copy
-#            "${CMAKE_CURRENT_SOURCE_DIR}/resources/asm.json"
-#            "${DEPLOY_PATH}/asm.json"
-#        COMMAND ${CMAKE_COMMAND} -E copy
-#            "$<TARGET_FILE_DIR:${TARGET}>/${TARGET}.pdb"
-#            "${DEPLOY_PATH}/"
-        COMMAND ${BASH_EXECUTABLE}
-            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
 )
+if (PACKAGE_RELEASE)
+    add_custom_command(TARGET ${TARGET} POST_BUILD
+            COMMAND ${BASH_EXECUTABLE}
+            "${CMAKE_SOURCE_DIR}/resources/generate_release/package_release.sh" "${DEPLOY_PATH_ROOT}"
+    )
+endif ()

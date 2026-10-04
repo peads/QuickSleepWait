@@ -6,30 +6,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
 if (NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND MSVC)
-        add_compile_options(-Zp8 /clang:-m64 /clang:-O3 /clang:-march=x86-64-v3 /WX- /Gy /clang:-flto /clang:-fomit-frame-pointer)
-    elseif (MSVC)
-        add_compile_options(-Zp8 /O2 /Ob2 /Ot /Oy /Oi /WX- /GL /Gy /Gm- /MP -GS-)
-    endif ()
-    add_link_options(/OPT:REF /OPT:ICF=3 /LTCG /DEBUG:NONE /EMITPOGOPHASEINFO)
     add_compile_definitions(OPTIMIZATIONS_ON)
 endif()
 
 find_package(Git REQUIRED)
 include(FetchContent)
 
-FetchContent_Declare(
+set(PMO_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/pmo-src")
+set(PMO_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/pmo-build")
+set(PMO_SUB_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/pmo-subbuild")
+FetchContent_Populate(
         PMO
+        QUIET
         GIT_REPOSITORY https://github.com/peads/pmo.git
-        GIT_TAG v1.0.4
-)
-
-FetchContent_MakeAvailable(PMO)
-FetchContent_GetProperties(
-        PMO
-        SOURCE_DIR PMO_SRC_DIR
-        BINARY_DIR PMO_BIN_DIR
-        POPULATED PMO_IS_POPULATED
+        GIT_TAG v1.0.5
+        SOURCE_DIR "${PMO_SRC_DIR}"
+        BINARY_DIR "${PMO_BIN_DIR}"
+        SUBBUILD_DIR "${PMO_SUB_DIR}"
 )
 
 add_library(${TARGET} SHARED "${CMAKE_SOURCE_DIR}/src/QuickSleepWait.cpp")
