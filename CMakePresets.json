@@ -1,0 +1,66 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 27,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-x64-ninja-clangcl-release",
+      "displayName": "QSW Ninja Clang-cl x64",
+      "description": "Compile for Windows x64 using Ninja and Clang-cl",
+      "binaryDir": "${sourceDir}/cmake-build-${presetName}",
+      "generator": "Ninja",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_C_FLAGS": "/EHsc /clang:-m64 /clang:-O3 /clang:-march=x86-64-v3 /WX- /Gy /clang:-flto=auto /clang:-fomit-frame-pointer",
+        "CMAKE_CXX_FLAGS": "/EHsc /clang:-m64 /clang:-O3 /clang:-march=x86-64-v3 /WX- /Gy /clang:-flto=auto /clang:-fomit-frame-pointer",
+        "GENERATE_RELEASE": "ON",
+        "CMAKE_SHARED_LINKER_FLAGS": "/OPT:REF /OPT:ICF=3 /LTCG /DEBUG:NONE /EMITPOGOPHASEINFO",
+        "CMAKE_EXE_LINKER_FLAGS": "/OPT:REF /OPT:ICF=3 /LTCG /DEBUG:NONE /EMITPOGOPHASEINFO"
+      }
+    },
+    {
+      "name": "windows-x64-ninja-msvc-release",
+      "displayName": "QSW ninja msvc x64",
+      "description": "Compile for Windows x64 using ninja and msvc",
+      "binaryDir": "${sourceDir}/cmake-build-${presetName}",
+      "generator": "Ninja",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_BUILD_TYPE": "Release",
+        "GENERATE_RELEASE": "ON",
+        "CMAKE_C_FLAGS": "/utf-8 /EHsc /O2 /Ob3 /Ot /Oy /Oi /WX- /GL /Gy /Gm- /MP -GS- /arch:AVX2",
+        "CMAKE_CXX_FLAGS": "/utf-8 /EHsc /O2 /Ob3 /Ot /Oy /Oi /WX- /GL /Gy /Gm- /MP -GS- /arch:AVX2",
+        "CMAKE_SHARED_LINKER_FLAGS": "/OPT:REF /OPT:ICF=3 /LTCG /DEBUG:NONE /EMITPOGOPHASEINFO",
+        "CMAKE_EXE_LINKER_FLAGS": "/OPT:REF /OPT:ICF=3 /LTCG /DEBUG:NONE /EMITPOGOPHASEINFO"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-x64-ninja-clangcl-release",
+      "configurePreset": "windows-x64-ninja-clangcl-release"
+    },
+    {
+      "name": "windows-x64-ninja-msvc-release",
+      "configurePreset": "windows-x64-ninja-msvc-release"
+    }
+  ]
+}
